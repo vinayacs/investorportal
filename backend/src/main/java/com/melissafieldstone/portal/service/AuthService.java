@@ -60,12 +60,24 @@ public class AuthService {
     }
 
     public void forgotPassword(ForgotPasswordRequest request) {
-        credentialsRepo.findByUsername(request.getEmail()).ifPresent(cred -> {
+        String email = request.getEmail();
+        // Check investor credentials first
+        if (credentialsRepo.findByUsername(email).isPresent()) {
+            InvestorCredentials cred = credentialsRepo.findByUsername(email).get();
             String token = UUID.randomUUID().toString();
             cred.setResetToken(token);
             cred.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
             credentialsRepo.save(cred);
-            emailService.sendPasswordResetEmail(request.getEmail(), token);
+            emailService.sendPasswordResetEmail(email, token);
+            return;
+        }
+        // Check admin users
+        adminUserRepo.findByEmail(email).ifPresent(admin -> {
+            String token = UUID.randomUUID().toString();
+            admin.setResetToken(token);
+            admin.setResetTokenExpiry(LocalDateTime.now().plusHours(1));
+            adminUserRepo.save(admin);
+            emailService.sendPasswordResetEmail(email, token);
         });
         // Silently succeed even if email not found (security best practice)
     }
@@ -92,16 +104,31 @@ public class AuthService {
     }
 
     public void resetPassword(ResetPasswordRequest request) {
-        InvestorCredentials cred = credentialsRepo.findByResetToken(request.getToken())
-                .orElseThrow(() -> new RuntimeException("Invalid or expired token"));
-        if (cred.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
-            throw new RuntimeException("Token has expired");
+        String token = request.getToken();
+
+        // Try investor credentials first
+        var credOpt = credentialsRepo.findByResetToken(token);
+        if (credOpt.isPresent()) {
+            InvestorCredentials cred = credOpt.get();
+            if (cred.getResetTokenExpiry().isBefore(LocalDateTime.now()))
+                throw new RuntimeException("Token has expired");
+            cred.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+            cred.setResetToken(null);
+            cred.setResetTokenExpiry(null);
+            credentialsRepo.save(cred);
+            logAttempt(cred.getInvestor(), null, "SUCCESS", null, "PASSWORD_RESET");
+            return;
         }
-        cred.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-        cred.setResetToken(null);
-        cred.setResetTokenExpiry(null);
-        credentialsRepo.save(cred);
-        logAttempt(cred.getInvestor(), null, "SUCCESS", null, "PASSWORD_RESET");
+
+        // Try admin users
+        AdminUser admin = adminUserRepo.findByResetToken(token)
+                .orElseThrow(() -> new RuntimeException("Invalid or expired token"));
+        if (admin.getResetTokenExpiry().isBefore(LocalDateTime.now()))
+            throw new RuntimeException("Token has expired");
+        admin.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        admin.setResetToken(null);
+        admin.setResetTokenExpiry(null);
+        adminUserRepo.save(admin);
     }
 
     private void logAttempt(Investor investor, String ip, String status, String reason, String action) {

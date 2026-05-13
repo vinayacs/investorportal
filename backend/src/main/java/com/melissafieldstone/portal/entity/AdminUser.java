@@ -25,6 +25,9 @@ public class AdminUser {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+    private String resetToken;
+    private LocalDateTime resetTokenExpiry;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
