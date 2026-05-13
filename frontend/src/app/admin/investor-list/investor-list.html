@@ -1,0 +1,45 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Admin Portal</div>
+    <ul>
+      <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
+      <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login Logs</a></li>
+      <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+    </ul>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+
+  <main class="content">
+    <div class="header-row">
+      <h1>All Investors</h1>
+      <a routerLink="/admin/investors/new" class="add-btn">+ Add Investor</a>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th><th>Name</th><th>Email</th><th>Shares</th><th>LLC Name</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (inv of investors; track inv.investorId) {
+            <tr>
+              <td>{{ inv.investorId }}</td>
+              <td>{{ inv.firstName }} {{ inv.lastName }}</td>
+              <td>{{ inv.email }}</td>
+              <td>{{ inv.numberOfShares ?? '—' }}</td>
+              <td>{{ inv.llcName ?? '—' }}</td>
+              <td>
+                <a [routerLink]="['/admin/investors', inv.investorId]" class="action-link">View</a>
+                <button class="deactivate-btn" (click)="deactivate(inv.investorId)">Deactivate</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </main>
+</div>

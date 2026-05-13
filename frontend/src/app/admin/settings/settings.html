@@ -1,0 +1,44 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Admin Portal</div>
+    <ul>
+      <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
+      <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login Logs</a></li>
+      <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+    </ul>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+
+  <main class="content">
+    <h1>Settings</h1>
+
+    <div class="section">
+      <h2>Change Password</h2>
+
+      @if (saved) {
+        <div class="success-msg">Password updated successfully.</div>
+      }
+      @if (error) {
+        <div class="error-msg">{{ error }}</div>
+      }
+
+      <form (ngSubmit)="changePassword()" class="pw-form">
+        <div class="field">
+          <label>Current Password</label>
+          <input type="password" [(ngModel)]="form.currentPassword" name="currentPassword" required />
+        </div>
+        <div class="field">
+          <label>New Password</label>
+          <input type="password" [(ngModel)]="form.newPassword" name="newPassword" required />
+        </div>
+        <div class="field">
+          <label>Confirm New Password</label>
+          <input type="password" [(ngModel)]="form.confirmPassword" name="confirmPassword" required />
+        </div>
+        <button type="submit" class="save-btn">Update Password</button>
+      </form>
+    </div>
+  </main>
+</div>

@@ -1,0 +1,52 @@
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+  .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
+  ul { list-style: none; padding: 0; flex: 1;
+    li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
+      &:hover, &.active { background: #004080; color: white; } } }
+  .logout-btn { background: transparent; border: 1px solid #cdd8e8; color: #cdd8e8; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; } }
+.content { flex: 1; padding: 32px; background: #f5f7fa; }
+.header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
+  h1 { color: #003366; margin: 0; } }
+.back-link { color: #003366; text-decoration: none; font-size: 0.9rem; }
+.success-msg { background: #e8f5e9; color: #2e7d32; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
+.error-msg { background: #fdecea; color: #c0392b; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
+.form-card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+.field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.form-group { display: flex; flex-direction: column;
+  label { font-size: 0.8rem; color: #555; margin-bottom: 4px; font-weight: 500; }
+  input, textarea { padding: 9px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; font-family: inherit;
+    &:focus { outline: none; border-color: #003366; } }
+  textarea { resize: vertical; } }
+.full-width { margin-bottom: 16px; }
+.section { margin-top: 24px; margin-bottom: 8px;
+  h2 { color: #004080; font-size: 1rem; margin: 0 0 12px; border-bottom: 1px solid #e0e0e0; padding-bottom: 8px; } }
+.investor-checkboxes { display: flex; flex-direction: column; gap: 10px; }
+.checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; color: #333; cursor: pointer; padding: 8px 10px; border-radius: 6px;
+  &:hover { background: #f4f8ff; }
+  input[type="checkbox"] { width: 16px; height: 16px; accent-color: #003366; cursor: pointer; } }
+button[type="submit"] { background: #003366; color: white; border: none; padding: 12px 28px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; margin-top: 16px;
+  &:hover { background: #004080; } }
+
+.doc-list { list-style: none; padding: 0; margin: 0 0 16px; display: flex; flex-direction: column; gap: 8px;
+  li { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: #f8f9fa; border-radius: 6px; gap: 8px; } }
+.doc-name { font-size: 0.9rem; color: #333; flex: 1; }
+.doc-actions { display: flex; gap: 12px; flex-shrink: 0; }
+.doc-edit-row { display: flex; gap: 8px; align-items: center; flex: 1;
+  input { flex: 1; padding: 6px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.85rem;
+    &:focus { outline: none; border-color: #003366; } } }
+.edit-doc-btn { background: transparent; border: none; color: #003366; cursor: pointer; font-size: 0.82rem; padding: 0;
+  &:hover { text-decoration: underline; } }
+.save-doc-btn { background: #003366; color: white; border: none; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.82rem;
+  &:hover { background: #004080; } }
+.cancel-doc-btn { background: transparent; border: 1px solid #ccc; color: #666; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.82rem;
+  &:hover { background: #f0f0f0; } }
+.remove-doc-btn { background: transparent; border: none; color: #c0392b; cursor: pointer; font-size: 0.82rem; padding: 0;
+  &:hover { text-decoration: underline; } }
+.no-docs { color: #aaa; font-size: 0.85rem; margin: 0 0 16px; }
+.add-doc-form { border-top: 1px solid #eee; padding-top: 16px;
+  h3 { font-size: 0.85rem; font-weight: 600; color: #555; margin: 0 0 12px; } }
+.doc-field-row { display: flex; gap: 12px; align-items: flex-end;
+  .form-group { flex: 1; } }
+.add-doc-btn { background: #003366; color: white; border: none; padding: 9px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; white-space: nowrap;
+  &:hover { background: #004080; } }

@@ -1,0 +1,20 @@
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+  .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
+  ul { list-style: none; padding: 0; flex: 1;
+    li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
+      &:hover, &.active { background: #004080; color: white; } } }
+  .logout-btn { background: transparent; border: 1px solid #cdd8e8; color: #cdd8e8; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; } }
+.content { flex: 1; padding: 32px; background: #f5f7fa;
+  h1 { color: #003366; margin-bottom: 24px; } }
+.table-wrap { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: auto; }
+table { width: 100%; border-collapse: collapse;
+  th { background: #003366; color: white; padding: 10px 14px; text-align: left; font-size: 0.85rem; }
+  td { padding: 10px 14px; border-bottom: 1px solid #eee; font-size: 0.85rem; }
+  tr:last-child td { border-bottom: none; } }
+.badge { padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;
+  &.success { background: #e8f5e9; color: #2e7d32; }
+  &.failed { background: #fdecea; color: #c0392b; }
+  &.action-login { background: #e3f2fd; color: #1565c0; }
+  &.action-password-reset { background: #fff3e0; color: #e65100; }
+  &.action-password-change { background: #f3e5f5; color: #6a1b9a; } }

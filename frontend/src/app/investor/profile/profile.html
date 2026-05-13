@@ -1,0 +1,145 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Investor Portal</div>
+    <ul>
+      <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+      <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
+      <li><a routerLink="/investments" routerLinkActive="active">My Investments</a></li>
+    </ul>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+
+  <main class="content">
+    <div class="header-row">
+      <h1>My Profile</h1>
+      @if (investor) {
+        <button class="edit-btn" (click)="toggleEdit()">{{ editMode ? 'Cancel' : 'Edit' }}</button>
+      }
+    </div>
+
+    @if (saved) {
+      <div class="success-msg">Profile updated successfully.</div>
+    }
+
+    @if (error) {
+      <div class="error-msg">{{ error }}</div>
+    }
+
+    @if (!investor && !error) {
+      <div class="loading">Loading profile...</div>
+    }
+
+    @if (investor) {
+      <div class="section">
+        <h2>Personal Details</h2>
+        <div class="field-grid">
+          <div class="field">
+            <span class="label">First Name</span>
+            <span>{{ investor.firstName }}</span>
+          </div>
+          <div class="field">
+            <span class="label">Last Name</span>
+            <span>{{ investor.lastName || '—' }}</span>
+          </div>
+          <div class="field">
+            <span class="label">Primary Email</span>
+            <span>{{ investor.email }}</span>
+          </div>
+        </div>
+      </div>
+
+      <form (ngSubmit)="save()">
+        <div class="section">
+          <h2>Contact</h2>
+          <div class="field-grid">
+            <div class="field">
+              <span class="label">Secondary Email</span>
+              @if (editMode) {
+                <input [(ngModel)]="form.emailAddress2" name="emailAddress2" placeholder="Secondary email" />
+              } @else {
+                <span>{{ investor.emailAddress2 || '—' }}</span>
+              }
+            </div>
+            <div class="field">
+              <span class="label">Phone</span>
+              @if (editMode) {
+                <input [(ngModel)]="form.phone" name="phone" placeholder="Phone number" />
+              } @else {
+                <span>{{ investor.phone || '—' }}</span>
+              }
+            </div>
+            <div class="field">
+              <span class="label">Mailing Address</span>
+              @if (editMode) {
+                <input [(ngModel)]="form.mailingAddress" name="mailingAddress" placeholder="Mailing address" />
+              } @else {
+                <span>{{ investor.mailingAddress || '—' }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h2>Beneficiary</h2>
+          <div class="field-grid">
+            <div class="field">
+              <span class="label">Beneficiary Name</span>
+              @if (editMode) {
+                <input [(ngModel)]="form.beneficiaryName" name="beneficiaryName" placeholder="Beneficiary name" />
+              } @else {
+                <span>{{ investor.beneficiaryName || '—' }}</span>
+              }
+            </div>
+            <div class="field">
+              <span class="label">Beneficiary Phone</span>
+              @if (editMode) {
+                <input [(ngModel)]="form.beneficiaryPhone" name="beneficiaryPhone" placeholder="Beneficiary phone" />
+              } @else {
+                <span>{{ investor.beneficiaryPhone || '—' }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        @if (editMode) {
+          <button type="submit" class="save-btn">Save Changes</button>
+        }
+      </form>
+
+      <!-- Change Password -->
+      <div class="section">
+        <div class="section-header-row">
+          <h2>Change Password</h2>
+          <button class="edit-btn" type="button" (click)="togglePwMode()">
+            {{ pwMode ? 'Cancel' : 'Change Password' }}
+          </button>
+        </div>
+
+        @if (pwSaved) {
+          <div class="success-msg">Password changed successfully.</div>
+        }
+        @if (pwError) {
+          <div class="error-msg">{{ pwError }}</div>
+        }
+
+        @if (pwMode) {
+          <form (ngSubmit)="changePassword()" class="pw-form">
+            <div class="field">
+              <span class="label">Current Password</span>
+              <input type="password" [(ngModel)]="pwForm.currentPassword" name="currentPassword" required />
+            </div>
+            <div class="field">
+              <span class="label">New Password</span>
+              <input type="password" [(ngModel)]="pwForm.newPassword" name="newPassword" required />
+            </div>
+            <div class="field">
+              <span class="label">Confirm New Password</span>
+              <input type="password" [(ngModel)]="pwForm.confirmPassword" name="confirmPassword" required />
+            </div>
+            <button type="submit" class="save-btn">Update Password</button>
+          </form>
+        }
+      </div>
+    }
+  </main>
+</div>

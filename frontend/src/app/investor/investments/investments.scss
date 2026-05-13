@@ -1,0 +1,50 @@
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+  .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
+  ul { list-style: none; padding: 0; flex: 1;
+    li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
+      &:hover, &.active { background: #004080; color: white; } } }
+  .logout-btn { background: transparent; border: 1px solid #cdd8e8; color: #cdd8e8; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; } }
+
+.content { flex: 1; padding: 32px; background: #f5f7fa;
+  h1 { color: #003366; margin: 0 0 24px; } }
+
+.loading { color: #666; font-size: 0.95rem; padding: 40px 0; text-align: center; }
+.empty-msg { color: #888; font-size: 0.95rem; }
+
+.cards { display: flex; flex-direction: column; gap: 12px; }
+
+.inv-card { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden;
+  &.open { box-shadow: 0 2px 8px rgba(0,0,0,0.12); } }
+
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; cursor: pointer; user-select: none;
+  &:hover { background: #fafbfd; } }
+
+.card-title { display: flex; align-items: center; gap: 10px; flex: 1;
+  .inv-name { font-weight: 600; color: #003366; font-size: 1rem; } }
+
+.card-meta { display: flex; gap: 20px; font-size: 0.82rem; color: #888; }
+
+.chevron { font-size: 0.75rem; color: #aaa; margin-left: 16px; }
+
+.badge { padding: 3px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;
+  &.active { background: #d4edda; color: #155724; }
+  &.closed { background: #e2e3e5; color: #495057; } }
+
+.card-body { padding: 20px; border-top: 1px solid #eee; display: flex; flex-direction: column; gap: 20px; }
+
+.progress-section { display: flex; flex-direction: column; gap: 6px; }
+.progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: #555;
+  .progress-pct { font-weight: 600; color: #003366; } }
+.progress-track { height: 8px; background: #e8ecf0; border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #003366, #0066cc); border-radius: 4px; transition: width 0.4s ease; }
+
+.detail-section {
+  h3 { font-size: 0.85rem; font-weight: 600; color: #004080; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 8px; } }
+
+.update-text { font-size: 0.9rem; color: #333; line-height: 1.6; margin: 0; white-space: pre-wrap; }
+
+.pdf-viewer { display: block; width: 100%; height: 600px; border: 1px solid #e0e0e0; border-radius: 6px; overflow: auto; }
+.pdf-loading { padding: 24px; text-align: center; color: #888; font-size: 0.9rem; background: #f8f9fa; border-radius: 6px; }
+
+.no-docs { font-size: 0.85rem; color: #aaa; margin: 0; }

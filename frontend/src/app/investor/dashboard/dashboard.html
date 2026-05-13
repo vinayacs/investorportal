@@ -1,0 +1,40 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Investor Portal</div>
+    <ul>
+      <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+      <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
+      <li><a routerLink="/investments" routerLinkActive="active">My Investments</a></li>
+    </ul>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+
+  <main class="content">
+    <h1>Welcome, {{ name }}</h1>
+
+    <div class="section">
+      <div class="section-header-row">
+        <h2>My Investments</h2>
+        <a routerLink="/investments" class="view-all-link">View all →</a>
+      </div>
+      @if (investments.length === 0) {
+        <p class="empty-msg">No investments found.</p>
+      }
+      @for (inv of investments; track inv.investmentId) {
+        <div class="investment-row">
+          <div class="inv-main">
+            <span class="inv-name">{{ inv.name }}</span>
+            <span class="inv-date">Started {{ inv.startDate | date:'mediumDate' }}</span>
+          </div>
+          <div class="inv-update">
+            @if (inv.currentUpdate) {
+              <span>{{ inv.currentUpdate }}</span>
+            } @else {
+              <span class="no-update">No update yet</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+</div>

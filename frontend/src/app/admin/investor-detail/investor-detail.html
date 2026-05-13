@@ -1,0 +1,43 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Admin Portal</div>
+    <ul>
+      <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
+      <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login Logs</a></li>
+      <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+    </ul>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+
+  <main class="content">
+    <div class="header-row">
+      <h1>{{ isNew ? 'Add Investor' : 'Edit Investor' }}</h1>
+      <a routerLink="/admin/investors" class="back-link">← Back to List</a>
+    </div>
+    @if (saved) { <div class="success-msg">{{ isNew ? 'Investor created.' : 'Changes saved.' }}</div> }
+
+    <form (ngSubmit)="save()" class="form-card">
+      <div class="field-grid">
+        <div class="form-group"><label>First Name *</label><input [(ngModel)]="form.firstName" name="firstName" required /></div>
+        <div class="form-group"><label>Last Name</label><input [(ngModel)]="form.lastName" name="lastName" /></div>
+        <div class="form-group"><label>Email *</label><input type="email" [(ngModel)]="form.email" name="email" required /></div>
+        @if (isNew) {
+          <div class="form-group"><label>Password *</label><input type="password" [(ngModel)]="form.password" name="password" required /></div>
+        }
+        <div class="form-group"><label>Secondary Email</label><input [(ngModel)]="form.emailAddress2" name="emailAddress2" /></div>
+        <div class="form-group"><label>Phone</label><input [(ngModel)]="form.phone" name="phone" /></div>
+        <div class="form-group"><label>Mailing Address</label><input [(ngModel)]="form.mailingAddress" name="mailingAddress" /></div>
+        <div class="form-group"><label>Beneficiary Name</label><input [(ngModel)]="form.beneficiaryName" name="beneficiaryName" /></div>
+        <div class="form-group"><label>Beneficiary Phone</label><input [(ngModel)]="form.beneficiaryPhone" name="beneficiaryPhone" /></div>
+        <div class="form-group"><label>Number of Shares</label><input type="number" [(ngModel)]="form.numberOfShares" name="numberOfShares" /></div>
+        <div class="form-group"><label>Investment Source</label><input [(ngModel)]="form.investmentSource" name="investmentSource" /></div>
+        <div class="form-group"><label>LLC Name</label><input [(ngModel)]="form.llcName" name="llcName" /></div>
+        <div class="form-group"><label>Major ID</label><input [(ngModel)]="form.majorId" name="majorId" /></div>
+        <div class="form-group"><label>Company Share Holding</label><input type="number" step="0.0001" [(ngModel)]="form.companyShareHolding" name="companyShareHolding" /></div>
+      </div>
+      <button type="submit">{{ isNew ? 'Create Investor' : 'Save Changes' }}</button>
+    </form>
+  </main>
+</div>

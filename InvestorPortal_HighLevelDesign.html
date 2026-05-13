@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Investor Portal — High-Level Design v2</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 980px;
+      margin: 40px auto;
+      padding: 0 30px 60px;
+      color: #1a1a1a;
+      background: #f9f9f9;
+    }
+    h1 { font-size: 2rem; color: #003366; border-bottom: 3px solid #003366; padding-bottom: 12px; }
+    h2 { font-size: 1.3rem; color: #004080; margin-top: 40px; border-left: 4px solid #004080; padding-left: 12px; }
+    h3 { font-size: 1rem; color: #333; margin-top: 20px; }
+    p, li { line-height: 1.7; font-size: 0.97rem; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+    th { background: #003366; color: #fff; padding: 10px 14px; text-align: left; font-size: 0.9rem; }
+    td { padding: 9px 14px; border-bottom: 1px solid #e8e8e8; font-size: 0.9rem; }
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) td { background: #f4f8ff; }
+    code, pre { font-family: 'Menlo', 'Courier New', monospace; background: #eef2f7; border-radius: 5px; font-size: 0.88rem; }
+    pre { padding: 16px 20px; overflow-x: auto; line-height: 1.6; }
+    code { padding: 2px 6px; }
+    .section-box { background: #fff; border-radius: 8px; padding: 20px 24px; margin: 16px 0; box-shadow: 0 1px 4px rgba(0,0,0,0.07); }
+    .decision-list li { background: #e8f5e9; border-left: 4px solid #2e7d32; margin: 8px 0; padding: 8px 12px; border-radius: 0 6px 6px 0; list-style: none; }
+    .meta { color: #666; font-size: 0.85rem; margin-top: -10px; margin-bottom: 30px; }
+    .tag { display: inline-block; background: #e8f0fe; color: #1a56db; border-radius: 4px; padding: 2px 8px; font-size: 0.8rem; margin: 2px; }
+    .tag-green { background: #e8f5e9; color: #2e7d32; }
+    .tag-orange { background: #fff3e0; color: #e65100; }
+    .db-table { border: 2px solid #003366; border-radius: 8px; overflow: hidden; margin: 16px 0; }
+    .db-table-header { background: #003366; color: white; padding: 8px 14px; font-weight: bold; font-size: 0.9rem; }
+    .db-table table { margin: 0; box-shadow: none; border-radius: 0; }
+    .pk { color: #f0a500; font-weight: bold; }
+    .fk { color: #1a56db; }
+    .flow-box { background: #fff; border: 1px solid #dde3ee; border-radius: 8px; padding: 16px 20px; margin: 12px 0; }
+    .flow-step { display: flex; align-items: flex-start; margin: 8px 0; }
+    .step-num { background: #003366; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: bold; flex-shrink: 0; margin-right: 12px; margin-top: 2px; }
+    .version-badge { background: #003366; color: white; border-radius: 12px; padding: 3px 12px; font-size: 0.8rem; margin-left: 10px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+
+  <h1>Investor Portal — High-Level Design <span class="version-badge">v2</span></h1>
+  <p class="meta">Database: <strong>MelissaFieldstone75LLC</strong> &nbsp;|&nbsp; Updated after design review</p>
+
+  <!-- Decisions Summary -->
+  <h2>1. Design Decisions (From Review)</h2>
+  <ul class="decision-list">
+    <li><strong>Separate Password Table</strong> — Credentials stored in a dedicated <code>InvestorCredentials</code> table, not in <code>Investors</code></li>
+    <li><strong>Login Audit Log Table</strong> — All login activity tracked in a dedicated <code>InvestorLoginLogs</code> table</li>
+    <li><strong>Admin Role</strong> — Admin users can manage all investors; investors can only see their own data</li>
+    <li><strong>No Self-Registration</strong> — Only admins can create investor accounts</li>
+    <li><strong>Password Reset via Email</strong> — Token-based email reset flow</li>
+    <li><strong>Containerized with Docker</strong> — Runs locally or can be deployed to cloud</li>
+    <li><strong>Ports</strong> — Frontend on <code>4200</code>, Backend on <code>8080</code></li>
+  </ul>
+
+  <!-- Tech Stack -->
+  <h2>2. Tech Stack</h2>
+  <table>
+    <tr><th>Layer</th><th>Technology</th></tr>
+    <tr><td>Frontend</td><td>Angular 17+</td></tr>
+    <tr><td>Backend</td><td>Java 17 + Spring Boot 3.x</td></tr>
+    <tr><td>Database</td><td>PostgreSQL 18 (MelissaFieldstone75LLC)</td></tr>
+    <tr><td>Authentication</td><td>JWT (JSON Web Tokens)</td></tr>
+    <tr><td>Password Security</td><td>BCrypt Hashing</td></tr>
+    <tr><td>Email Service</td><td>Spring Mail + SMTP (e.g. Gmail or SendGrid)</td></tr>
+    <tr><td>Containerization</td><td>Docker + Docker Compose</td></tr>
+    <tr><td>API Style</td><td>REST / JSON</td></tr>
+  </table>
+
+  <!-- Architecture -->
+  <h2>3. Architecture</h2>
+  <pre>
+  ┌─────────────────────────────┐
+  │   Angular Frontend :4200    │  (Docker container)
+  └────────────┬────────────────┘
+               │  REST API (JSON)
+  ┌────────────▼────────────────┐
+  │  Spring Boot Backend :8080  │  (Docker container)
+  └────────────┬────────────────┘
+               │  JPA / Hibernate
+  ┌────────────▼────────────────┐
+  │  PostgreSQL :5432           │  (Docker container)
+  │  MelissaFieldstone75LLC     │
+  └─────────────────────────────┘
+               │
+  ┌────────────▼────────────────┐
+  │  SMTP Email Service         │  (External — Gmail / SendGrid)
+  └─────────────────────────────┘
+  </pre>
+
+  <!-- Database Schema -->
+  <h2>4. Database Schema</h2>
+  <p>Four tables total — existing <code>Investors</code> table plus three new supporting tables:</p>
+
+  <div class="db-table">
+    <div class="db-table-header">Table: Investors (existing — no changes needed)</div>
+    <table>
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td><span class="pk">InvestorID</span></td><td>INTEGER</td><td>Primary Key, Auto-generated</td></tr>
+      <tr><td>first_name</td><td>TEXT</td><td>NOT NULL</td></tr>
+      <tr><td>last_name</td><td>TEXT</td><td></td></tr>
+      <tr><td>email</td><td>VARCHAR(255)</td><td>NOT NULL</td></tr>
+      <tr><td>email_address_2</td><td>VARCHAR(255)</td><td></td></tr>
+      <tr><td>phone</td><td>VARCHAR(20)</td><td></td></tr>
+      <tr><td>mailing_address</td><td>TEXT</td><td></td></tr>
+      <tr><td>beneficiary_name</td><td>VARCHAR(255)</td><td></td></tr>
+      <tr><td>beneficiary_phone</td><td>VARCHAR(20)</td><td></td></tr>
+      <tr><td>number_of_shares</td><td>INTEGER</td><td></td></tr>
+      <tr><td>investment_source</td><td>VARCHAR(100)</td><td></td></tr>
+      <tr><td>llc_name</td><td>VARCHAR(255)</td><td></td></tr>
+      <tr><td>major_id</td><td>VARCHAR(50)</td><td></td></tr>
+      <tr><td>company_share_holding</td><td>DECIMAL(10,4)</td><td></td></tr>
+      <tr><td>update_date_time</td><td>TIMESTAMP</td><td>Default: NOW()</td></tr>
+    </table>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header">Table: InvestorCredentials (NEW)</div>
+    <table>
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td><span class="pk">CredentialID</span></td><td>INTEGER</td><td>Primary Key, Auto-generated</td></tr>
+      <tr><td><span class="fk">InvestorID</span></td><td>INTEGER</td><td>Foreign Key → Investors.InvestorID</td></tr>
+      <tr><td>username</td><td>VARCHAR(255)</td><td>Unique, NOT NULL (email used as username)</td></tr>
+      <tr><td>password_hash</td><td>VARCHAR(255)</td><td>BCrypt hashed, NOT NULL</td></tr>
+      <tr><td>role</td><td>VARCHAR(20)</td><td>'INVESTOR' or 'ADMIN'</td></tr>
+      <tr><td>is_active</td><td>BOOLEAN</td><td>Default: TRUE — admin can deactivate</td></tr>
+      <tr><td>reset_token</td><td>VARCHAR(255)</td><td>Temporary token for password reset</td></tr>
+      <tr><td>reset_token_expiry</td><td>TIMESTAMP</td><td>Token expiry (1 hour)</td></tr>
+      <tr><td>created_at</td><td>TIMESTAMP</td><td>Default: NOW()</td></tr>
+      <tr><td>updated_at</td><td>TIMESTAMP</td><td>Default: NOW()</td></tr>
+    </table>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header">Table: InvestorLoginLogs (NEW)</div>
+    <table>
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td><span class="pk">LogID</span></td><td>INTEGER</td><td>Primary Key, Auto-generated</td></tr>
+      <tr><td><span class="fk">InvestorID</span></td><td>INTEGER</td><td>Foreign Key → Investors.InvestorID</td></tr>
+      <tr><td>login_timestamp</td><td>TIMESTAMP</td><td>When the login attempt occurred</td></tr>
+      <tr><td>ip_address</td><td>VARCHAR(45)</td><td>Supports IPv4 and IPv6</td></tr>
+      <tr><td>status</td><td>VARCHAR(20)</td><td>'SUCCESS' or 'FAILED'</td></tr>
+      <tr><td>failure_reason</td><td>VARCHAR(255)</td><td>e.g. "Invalid password", "Account inactive"</td></tr>
+    </table>
+  </div>
+
+  <div class="db-table">
+    <div class="db-table-header">Table: AdminUsers (NEW)</div>
+    <table>
+      <tr><th>Column</th><th>Type</th><th>Notes</th></tr>
+      <tr><td><span class="pk">AdminID</span></td><td>INTEGER</td><td>Primary Key, Auto-generated</td></tr>
+      <tr><td>name</td><td>VARCHAR(255)</td><td>NOT NULL</td></tr>
+      <tr><td>email</td><td>VARCHAR(255)</td><td>Unique, NOT NULL — used as login username</td></tr>
+      <tr><td>password_hash</td><td>VARCHAR(255)</td><td>BCrypt hashed, NOT NULL</td></tr>
+      <tr><td>is_active</td><td>BOOLEAN</td><td>Default: TRUE</td></tr>
+      <tr><td>created_at</td><td>TIMESTAMP</td><td>Default: NOW()</td></tr>
+    </table>
+  </div>
+
+  <!-- Roles & Permissions -->
+  <h2>5. Roles & Permissions</h2>
+  <table>
+    <tr><th>Feature</th><th>Investor</th><th>Admin</th></tr>
+    <tr><td>Login</td><td>✅</td><td>✅</td></tr>
+    <tr><td>View own profile</td><td>✅</td><td>✅</td></tr>
+    <tr><td>Edit own contact details</td><td>✅</td><td>✅</td></tr>
+    <tr><td>View all investors</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Add new investor</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Edit any investor's details</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Deactivate investor account</td><td>❌</td><td>✅</td></tr>
+    <tr><td>View login logs</td><td>❌</td><td>✅</td></tr>
+    <tr><td>Password reset (own)</td><td>✅ (via email)</td><td>✅ (via email)</td></tr>
+  </table>
+
+  <!-- API Endpoints -->
+  <h2>6. Backend API Endpoints</h2>
+
+  <h3>Auth</h3>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td><code>POST</code></td><td><code>/api/auth/login</code></td><td>None</td><td>Login; returns JWT token + role</td></tr>
+    <tr><td><code>POST</code></td><td><code>/api/auth/forgot-password</code></td><td>None</td><td>Send password reset email</td></tr>
+    <tr><td><code>POST</code></td><td><code>/api/auth/reset-password</code></td><td>None</td><td>Reset password using token from email</td></tr>
+    <tr><td><code>POST</code></td><td><code>/api/auth/logout</code></td><td>JWT</td><td>Invalidate session</td></tr>
+  </table>
+
+  <h3>Investor (self-service)</h3>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td><code>GET</code></td><td><code>/api/investor/me</code></td><td>JWT (Investor)</td><td>Get own profile</td></tr>
+    <tr><td><code>PUT</code></td><td><code>/api/investor/me</code></td><td>JWT (Investor)</td><td>Update own contact details</td></tr>
+  </table>
+
+  <h3>Admin</h3>
+  <table>
+    <tr><th>Method</th><th>Endpoint</th><th>Auth</th><th>Description</th></tr>
+    <tr><td><code>GET</code></td><td><code>/api/admin/investors</code></td><td>JWT (Admin)</td><td>List all investors</td></tr>
+    <tr><td><code>POST</code></td><td><code>/api/admin/investors</code></td><td>JWT (Admin)</td><td>Add new investor</td></tr>
+    <tr><td><code>GET</code></td><td><code>/api/admin/investors/{id}</code></td><td>JWT (Admin)</td><td>View a specific investor</td></tr>
+    <tr><td><code>PUT</code></td><td><code>/api/admin/investors/{id}</code></td><td>JWT (Admin)</td><td>Edit any investor's details</td></tr>
+    <tr><td><code>PATCH</code></td><td><code>/api/admin/investors/{id}/deactivate</code></td><td>JWT (Admin)</td><td>Deactivate an investor account</td></tr>
+    <tr><td><code>GET</code></td><td><code>/api/admin/login-logs</code></td><td>JWT (Admin)</td><td>View all login activity logs</td></tr>
+  </table>
+
+  <!-- Password Reset Flow -->
+  <h2>7. Password Reset Flow</h2>
+  <div class="flow-box">
+    <div class="flow-step"><div class="step-num">1</div><div>Investor clicks "Forgot Password" and enters their email address</div></div>
+    <div class="flow-step"><div class="step-num">2</div><div>Backend generates a secure random token, stores it in <code>InvestorCredentials.reset_token</code> with a 1-hour expiry</div></div>
+    <div class="flow-step"><div class="step-num">3</div><div>Backend sends an email with a reset link: <code>http://localhost:4200/reset-password?token=&lt;token&gt;</code></div></div>
+    <div class="flow-step"><div class="step-num">4</div><div>Investor clicks the link, enters a new password on the Angular reset page</div></div>
+    <div class="flow-step"><div class="step-num">5</div><div>Backend validates the token (exists + not expired), hashes the new password, clears the reset token</div></div>
+    <div class="flow-step"><div class="step-num">6</div><div>Investor is redirected to the login page</div></div>
+  </div>
+
+  <!-- Frontend Pages -->
+  <h2>8. Frontend Pages & Routing</h2>
+  <table>
+    <tr><th>Page</th><th>Route</th><th>Role</th><th>Description</th></tr>
+    <tr><td>Login</td><td><code>/login</code></td><td>All</td><td>Email + password login form</td></tr>
+    <tr><td>Forgot Password</td><td><code>/forgot-password</code></td><td>All</td><td>Enter email to trigger reset</td></tr>
+    <tr><td>Reset Password</td><td><code>/reset-password</code></td><td>All</td><td>Enter new password via token link</td></tr>
+    <tr><td>Investor Dashboard</td><td><code>/dashboard</code></td><td>Investor</td><td>View personal investment summary</td></tr>
+    <tr><td>Investor Profile</td><td><code>/profile</code></td><td>Investor</td><td>View and edit contact details</td></tr>
+    <tr><td>Admin Dashboard</td><td><code>/admin</code></td><td>Admin</td><td>Overview of all investors</td></tr>
+    <tr><td>Admin — Investor List</td><td><code>/admin/investors</code></td><td>Admin</td><td>List, search, add investors</td></tr>
+    <tr><td>Admin — Investor Detail</td><td><code>/admin/investors/:id</code></td><td>Admin</td><td>View and edit any investor</td></tr>
+    <tr><td>Admin — Login Logs</td><td><code>/admin/login-logs</code></td><td>Admin</td><td>View login activity</td></tr>
+  </table>
+
+  <!-- Project Structure -->
+  <h2>9. Project Structure</h2>
+
+  <h3>Backend — Spring Boot</h3>
+  <pre>
+  backend/
+  └── src/main/java/com/melissafieldstone/portal/
+      ├── auth/
+      │   ├── AuthController.java         ← login, forgot/reset password
+      │   ├── AuthService.java
+      │   ├── JwtUtil.java
+      │   └── EmailService.java           ← sends reset emails via SMTP
+      ├── investor/
+      │   ├── InvestorController.java     ← /api/investor/me
+      │   ├── InvestorService.java
+      │   ├── InvestorRepository.java
+      │   └── Investor.java               ← JPA Entity
+      ├── credentials/
+      │   ├── InvestorCredentials.java    ← JPA Entity
+      │   └── CredentialsRepository.java
+      ├── logs/
+      │   ├── LoginLog.java               ← JPA Entity
+      │   └── LoginLogRepository.java
+      ├── admin/
+      │   ├── AdminController.java        ← /api/admin/*
+      │   └── AdminService.java
+      └── config/
+          ├── SecurityConfig.java         ← JWT filter, CORS, role-based access
+          └── AppConfig.java
+  </pre>
+
+  <h3>Frontend — Angular</h3>
+  <pre>
+  frontend/src/app/
+  ├── auth/
+  │   ├── login/                          ← Login page
+  │   ├── forgot-password/                ← Forgot password page
+  │   ├── reset-password/                 ← Reset password page
+  │   ├── auth.guard.ts                   ← Protects investor routes
+  │   ├── admin.guard.ts                  ← Protects admin routes
+  │   └── auth.interceptor.ts             ← Attaches JWT to all requests
+  ├── investor/
+  │   ├── dashboard/                      ← Investor dashboard
+  │   └── profile/                        ← View/edit profile
+  ├── admin/
+  │   ├── dashboard/                      ← Admin home
+  │   ├── investor-list/                  ← All investors table
+  │   ├── investor-detail/                ← View/edit one investor
+  │   └── login-logs/                     ← Login activity log
+  ├── shared/
+  │   ├── investor.service.ts
+  │   ├── admin.service.ts
+  │   └── auth.service.ts
+  └── app-routing.module.ts
+  </pre>
+
+  <!-- Docker -->
+  <h2>10. Docker Setup</h2>
+  <div class="section-box">
+    <p>Three containers managed via <strong>Docker Compose</strong>:</p>
+  </div>
+  <table>
+    <tr><th>Container</th><th>Image</th><th>Port</th><th>Notes</th></tr>
+    <tr><td><code>frontend</code></td><td>Node + Nginx</td><td>4200</td><td>Serves the Angular app</td></tr>
+    <tr><td><code>backend</code></td><td>Eclipse Temurin (Java 17)</td><td>8080</td><td>Spring Boot REST API</td></tr>
+    <tr><td><code>db</code></td><td>postgres:18</td><td>5432</td><td>PostgreSQL with existing schema</td></tr>
+  </table>
+  <pre>
+  docker-compose up      ← starts all three containers
+  docker-compose down    ← stops all containers
+  </pre>
+
+  <!-- Next Steps -->
+  <h2>11. Development Phases</h2>
+  <table>
+    <tr><th>Phase</th><th>What Gets Built</th></tr>
+    <tr><td>Phase 1</td><td>Database — create new tables (<code>InvestorCredentials</code>, <code>InvestorLoginLogs</code>, <code>AdminUsers</code>)</td></tr>
+    <tr><td>Phase 2</td><td>Backend — Spring Boot project, JWT auth, login, investor API, admin API</td></tr>
+    <tr><td>Phase 3</td><td>Frontend — Angular project, login, investor dashboard, admin pages</td></tr>
+    <tr><td>Phase 4</td><td>Password reset — email flow end-to-end</td></tr>
+    <tr><td>Phase 5</td><td>Docker — containerize all three services with Docker Compose</td></tr>
+  </table>
+
+  <p style="margin-top:50px; color:#999; font-size:0.8rem; text-align:center;">
+    MelissaFieldstone75LLC Investor Portal &mdash; High-Level Design v2 &mdash; Updated after design review
+  </p>
+
+</body>
+</html>

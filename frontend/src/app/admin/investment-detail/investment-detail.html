@@ -1,0 +1,121 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Admin Portal</div>
+    <ul>
+      <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
+      <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login Logs</a></li>
+      <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+    </ul>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+
+  <main class="content">
+    <div class="header-row">
+      <h1>{{ isNew ? 'Add Investment' : 'Edit Investment' }}</h1>
+      <a routerLink="/admin/investments" class="back-link">← Back to List</a>
+    </div>
+
+    @if (saved) { <div class="success-msg">{{ isNew ? 'Investment created.' : 'Changes saved.' }}</div> }
+    @if (error) { <div class="error-msg">{{ error }}</div> }
+
+    <form (ngSubmit)="save()" class="form-card">
+      <div class="field-grid">
+        <div class="form-group">
+          <label>Name *</label>
+          <input [(ngModel)]="form.name" name="name" required />
+        </div>
+        <div class="form-group">
+          <label>Start Date *</label>
+          <input type="date" [(ngModel)]="form.startDate" name="startDate" required />
+        </div>
+        <div class="form-group">
+          <label>Anticipated End Date</label>
+          <input type="date" [(ngModel)]="form.anticipatedEndDate" name="anticipatedEndDate" />
+        </div>
+        <div class="form-group">
+          <label>End Date</label>
+          <input type="date" [(ngModel)]="form.endDate" name="endDate" />
+        </div>
+        <div class="form-group">
+          <label>Project Progress (%)</label>
+          <input type="number" min="0" max="100" [(ngModel)]="form.projectProgress" name="projectProgress" />
+        </div>
+      </div>
+
+      <div class="form-group full-width">
+        <label>Current Update</label>
+        <textarea [(ngModel)]="form.currentUpdate" name="currentUpdate" rows="4" placeholder="Write a status update visible to investors..."></textarea>
+      </div>
+
+      <div class="section">
+        <h2>Assign Investors</h2>
+        <div class="investor-checkboxes">
+          @for (inv of allInvestors; track inv.investorId) {
+            <label class="checkbox-label">
+              <input type="checkbox"
+                     [checked]="isSelected(inv.investorId)"
+                     (change)="toggleInvestor(inv.investorId)" />
+              {{ inv.firstName }} {{ inv.lastName }} ({{ inv.email }})
+            </label>
+          }
+          @if (allInvestors.length === 0) {
+            <p style="color:#888">No investors found.</p>
+          }
+        </div>
+      </div>
+
+      <button type="submit">{{ isNew ? 'Create Investment' : 'Save Changes' }}</button>
+    </form>
+
+    @if (!isNew && investment) {
+      <div class="form-card" style="margin-top:20px">
+        <div class="section" style="margin-top:0">
+          <h2>Documents</h2>
+
+          @if (investment.documents && investment.documents.length > 0) {
+            <ul class="doc-list">
+              @for (doc of investment.documents; track doc.documentId) {
+                <li>
+                  @if (editingDocId === doc.documentId) {
+                    <div class="doc-edit-row">
+                      <input [(ngModel)]="editDoc.name" name="editDocName" placeholder="Document name" />
+                      <input [(ngModel)]="editDoc.url" name="editDocUrl" placeholder="URL" />
+                      <button class="save-doc-btn" type="button" (click)="saveEdit(doc.documentId)">Save</button>
+                      <button class="cancel-doc-btn" type="button" (click)="cancelEdit()">Cancel</button>
+                    </div>
+                  } @else {
+                    <span class="doc-name">{{ doc.name }}</span>
+                    <div class="doc-actions">
+                      <button class="edit-doc-btn" type="button" (click)="startEdit(doc)">Edit</button>
+                      <button class="remove-doc-btn" type="button" (click)="removeDocument(doc.documentId)">Remove</button>
+                    </div>
+                  }
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="no-docs">No documents added yet.</p>
+          }
+
+          <div class="add-doc-form">
+            <h3>Add Document</h3>
+            <div class="doc-field-row">
+              <div class="form-group">
+                <label>Document Name</label>
+                <input [(ngModel)]="newDoc.name" name="docName" placeholder="e.g. Q1 Report" />
+              </div>
+              <div class="form-group">
+                <label>URL</label>
+                <input [(ngModel)]="newDoc.url" name="docUrl" placeholder="https://drive.google.com/file/d/..." />
+              </div>
+              <button type="button" class="add-doc-btn" (click)="addDocument()">Add</button>
+            </div>
+            @if (docError) { <div class="error-msg" style="margin-top:8px">{{ docError }}</div> }
+          </div>
+        </div>
+      </div>
+    }
+  </main>
+</div>

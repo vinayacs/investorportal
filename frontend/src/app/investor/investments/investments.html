@@ -1,0 +1,84 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Investor Portal</div>
+    <ul>
+      <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+      <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
+      <li><a routerLink="/investments" routerLinkActive="active">My Investments</a></li>
+    </ul>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+
+  <main class="content">
+    <h1>My Investments</h1>
+
+    @if (loading) {
+      <div class="loading">Loading investments...</div>
+    }
+
+    @if (!loading && investments.length === 0) {
+      <p class="empty-msg">No investments have been assigned to your account yet.</p>
+    }
+
+    @if (!loading && investments.length > 0) {
+      <div class="cards">
+        @for (inv of investments; track inv.investmentId) {
+          <div class="inv-card" [class.open]="expandedId === inv.investmentId">
+            <div class="card-header" (click)="toggle(inv.investmentId)">
+              <div class="card-title">
+                <span class="inv-name">{{ inv.name }}</span>
+                @if (inv.endDate) {
+                  <span class="badge closed">Closed</span>
+                } @else {
+                  <span class="badge active">Active</span>
+                }
+              </div>
+              <div class="card-meta">
+                <span>Started {{ inv.startDate }}</span>
+                @if (inv.anticipatedEndDate) {
+                  <span>Est. end {{ inv.anticipatedEndDate }}</span>
+                }
+              </div>
+              <span class="chevron">{{ expandedId === inv.investmentId ? '▲' : '▼' }}</span>
+            </div>
+
+            @if (expandedId === inv.investmentId) {
+              <div class="card-body">
+@if (inv.currentUpdate) {
+                  <div class="detail-section">
+                    <h3>Current Update</h3>
+                    <p class="update-text">{{ inv.currentUpdate }}</p>
+                  </div>
+                }
+
+                @if (inv.documents && inv.documents.length > 0) {
+                  @for (doc of inv.documents; track doc.documentId) {
+                    <div class="detail-section">
+                      <h3>{{ doc.name }}</h3>
+                      @if (pdfLoading[doc.documentId]) {
+                        <div class="pdf-loading">Loading document...</div>
+                      } @else if (pdfBuffers[doc.documentId]) {
+                        <pdf-viewer
+                          [src]="pdfBuffers[doc.documentId]"
+                          [render-text]="true"
+                          [original-size]="false"
+                          [fit-to-page]="true"
+                          class="pdf-viewer">
+                        </pdf-viewer>
+                      }
+                    </div>
+                  }
+                } @else {
+                  <div class="detail-section">
+                    <h3>Documents</h3>
+                    <p class="no-docs">No documents have been uploaded yet.</p>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </main>
+</div>
