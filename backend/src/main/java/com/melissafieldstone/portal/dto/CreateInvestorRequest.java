@@ -2,7 +2,7 @@ package com.melissafieldstone.portal.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Pattern;
 import lombok.Data;
 import java.math.BigDecimal;
 
@@ -15,7 +15,10 @@ public class CreateInvestorRequest {
     @Email
     private String email;
     @NotBlank
-    @Size(min = 8)
+    @Pattern(
+        regexp = "^(?=.*[0-9])(?=.*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?]).{8,}$",
+        message = "Password must be at least 8 characters and contain at least one number and one special character"
+    )
     private String password;
     private String emailAddress2;
     private String phone;

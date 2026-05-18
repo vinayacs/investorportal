@@ -21,3 +21,27 @@
   &:hover { background: #004080; } }
 .success-msg { background: #e8f5e9; color: #2e7d32; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
 .error-msg { background: #fdecea; color: #c0392b; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
+.mfa-method-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f0f0f0;
+  &:last-of-type { border-bottom: none; } }
+.mfa-method-info { display: flex; flex-direction: column; gap: 2px; }
+.mfa-method-name { font-size: 0.9rem; font-weight: 600; color: #333; }
+.mfa-method-desc { font-size: 0.78rem; color: #888; }
+.mfa-method-actions { display: flex; align-items: center; gap: 10px; }
+.save-btn-sm { background: #003366; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem;
+  &:hover { background: #004080; } }
+.danger-btn-sm { background: #c0392b; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem;
+  &:hover { background: #a93226; } }
+.badge-enabled { background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+.badge-disabled { background: #f5f5f5; color: #777; padding: 4px 10px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+.mfa-options { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.mfa-hint { font-size: 0.88rem; color: #555; margin-bottom: 14px; }
+.mfa-form { display: flex; flex-direction: column; gap: 14px; }
+.mfa-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+.danger-btn { background: #c0392b; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+  &:hover { background: #a93226; } }
+.cancel-btn { background: transparent; color: #666; border: 1px solid #ccc; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem;
+  &:hover { border-color: #999; } }
+.qr-container { margin-bottom: 16px;
+  img { display: block; border: 1px solid #eee; border-radius: 8px; margin-bottom: 8px; }
+  .secret-label { font-size: 0.8rem; color: #666; word-break: break-all;
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 4px; font-size: 0.85rem; } } }

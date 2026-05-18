@@ -1,0 +1,65 @@
+<div class="page-container">
+  <div class="card">
+    <h1>Two-Factor Authentication</h1>
+
+    @if (error) {
+      <div class="error-msg">{{ error }}</div>
+    }
+
+    <!-- Step 1: choose method when both are enabled -->
+    @if (step === 'choose-method') {
+      <p class="hint">Your account has two verification methods set up. Choose one to continue:</p>
+      <div class="method-grid">
+        <button class="method-btn" (click)="selectMethod('EMAIL')" [disabled]="loading">
+          <span class="method-icon">✉</span>
+          <span class="method-label">Email OTP</span>
+          <span class="method-desc">Send a code to your email</span>
+        </button>
+        <button class="method-btn" (click)="selectMethod('TOTP')" [disabled]="loading">
+          <span class="method-icon">🔐</span>
+          <span class="method-label">Authenticator App</span>
+          <span class="method-desc">Use your authenticator app</span>
+        </button>
+      </div>
+    }
+
+    <!-- Step 2: enter the code -->
+    @if (step === 'enter-code') {
+      @if (selectedMethod === 'TOTP') {
+        <p class="hint">Enter the 6-digit code from your authenticator app.</p>
+      } @else {
+        <p class="hint">A verification code was sent to your email address.</p>
+      }
+
+      @if (resent) {
+        <div class="success-msg">Code resent successfully.</div>
+      }
+
+      <form (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>Verification Code</label>
+          <input
+            type="text"
+            [(ngModel)]="code"
+            name="code"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+            maxlength="6"
+            placeholder="000000"
+            required />
+        </div>
+        <button type="submit" [disabled]="loading || !code">
+          {{ loading ? 'Verifying...' : 'Verify' }}
+        </button>
+      </form>
+
+      @if (selectedMethod === 'EMAIL') {
+        <button class="secondary-btn" (click)="resendCode()" [disabled]="resending">
+          {{ resending ? 'Sending...' : 'Resend code' }}
+        </button>
+      }
+    }
+
+    <a class="back-link" (click)="backToLogin()">← Back to login</a>
+  </div>
+</div>

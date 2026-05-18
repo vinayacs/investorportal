@@ -6,6 +6,7 @@ export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./auth/login/login').then(m => m.LoginComponent) },
   { path: 'forgot-password', loadComponent: () => import('./auth/forgot-password/forgot-password').then(m => m.ForgotPasswordComponent) },
   { path: 'reset-password', loadComponent: () => import('./auth/reset-password/reset-password').then(m => m.ResetPasswordComponent) },
+  { path: 'mfa-verify', loadComponent: () => import('./auth/mfa-verify/mfa-verify').then(m => m.MfaVerifyComponent) },
   { path: 'dashboard', canActivate: [authGuard], loadComponent: () => import('./investor/dashboard/dashboard').then(m => m.DashboardComponent) },
   { path: 'profile', canActivate: [authGuard], loadComponent: () => import('./investor/profile/profile').then(m => m.ProfileComponent) },
   { path: 'admin', canActivate: [adminGuard], loadComponent: () => import('./admin/investor-list/investor-list').then(m => m.InvestorListComponent) },

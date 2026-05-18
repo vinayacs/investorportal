@@ -7,4 +7,5 @@ import java.util.Optional;
 public interface InvestorCredentialsRepository extends JpaRepository<InvestorCredentials, Integer> {
     Optional<InvestorCredentials> findByUsername(String username);
     Optional<InvestorCredentials> findByResetToken(String resetToken);
+    Optional<InvestorCredentials> findByMfaPendingToken(String mfaPendingToken);
 }

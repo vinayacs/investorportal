@@ -27,8 +27,17 @@ CREATE TABLE IF NOT EXISTS investor_credentials (
     is_active           BOOLEAN      NOT NULL DEFAULT TRUE,
     reset_token         VARCHAR(255),
     reset_token_expiry  TIMESTAMP,
-    created_at          TIMESTAMP    NOT NULL,
-    updated_at          TIMESTAMP    NOT NULL
+    mfa_enabled            BOOLEAN      NOT NULL DEFAULT FALSE,
+    mfa_email_enabled      BOOLEAN      NOT NULL DEFAULT FALSE,
+    mfa_totp_enabled       BOOLEAN      NOT NULL DEFAULT FALSE,
+    mfa_selected_method    VARCHAR(10),
+    totp_secret            VARCHAR(64),
+    mfa_otp_code           VARCHAR(6),
+    mfa_otp_expiry         TIMESTAMP,
+    mfa_pending_token      VARCHAR(255),
+    mfa_pending_expiry     TIMESTAMP,
+    created_at             TIMESTAMP    NOT NULL,
+    updated_at             TIMESTAMP    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS investor_login_logs (
@@ -37,7 +46,8 @@ CREATE TABLE IF NOT EXISTS investor_login_logs (
     login_timestamp     TIMESTAMP    NOT NULL,
     ip_address          VARCHAR(100),
     status              VARCHAR(20)  NOT NULL,
-    failure_reason      VARCHAR(255)
+    failure_reason      VARCHAR(255),
+    action              VARCHAR(50)
 );
 
 CREATE TABLE IF NOT EXISTS admin_users (
@@ -46,7 +56,18 @@ CREATE TABLE IF NOT EXISTS admin_users (
     email               VARCHAR(255) NOT NULL UNIQUE,
     password_hash       VARCHAR(255) NOT NULL,
     is_active           BOOLEAN      NOT NULL DEFAULT TRUE,
-    created_at          TIMESTAMP    NOT NULL
+    reset_token         VARCHAR(255),
+    reset_token_expiry  TIMESTAMP,
+    mfa_enabled            BOOLEAN      NOT NULL DEFAULT FALSE,
+    mfa_email_enabled      BOOLEAN      NOT NULL DEFAULT FALSE,
+    mfa_totp_enabled       BOOLEAN      NOT NULL DEFAULT FALSE,
+    mfa_selected_method    VARCHAR(10),
+    totp_secret            VARCHAR(64),
+    mfa_otp_code           VARCHAR(6),
+    mfa_otp_expiry         TIMESTAMP,
+    mfa_pending_token      VARCHAR(255),
+    mfa_pending_expiry     TIMESTAMP,
+    created_at             TIMESTAMP    NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS investments (
@@ -61,6 +82,14 @@ CREATE TABLE IF NOT EXISTS investor_investments (
     investment_id   INTEGER NOT NULL REFERENCES investments(investment_id),
     investor_id     INTEGER NOT NULL REFERENCES investors(investor_id),
     PRIMARY KEY (investment_id, investor_id)
+);
+
+CREATE TABLE IF NOT EXISTS password_history (
+    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_type       VARCHAR(20)  NOT NULL,
+    user_id         INTEGER      NOT NULL,
+    password_hash   VARCHAR(255) NOT NULL,
+    created_at      TIMESTAMP    NOT NULL
 );
 
 -- Seed admin user (password: TestApp#38899)

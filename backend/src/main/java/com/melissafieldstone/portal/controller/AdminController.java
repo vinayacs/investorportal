@@ -4,6 +4,7 @@ import com.melissafieldstone.portal.dto.*;
 import com.melissafieldstone.portal.service.AdminService;
 import com.melissafieldstone.portal.service.AuthService;
 import com.melissafieldstone.portal.service.InvestmentService;
+import com.melissafieldstone.portal.service.MfaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class AdminController {
     private final AdminService adminService;
     private final InvestmentService investmentService;
     private final AuthService authService;
+    private final MfaService mfaService;
 
     @PostMapping("/change-password")
     public ResponseEntity<Void> changePassword(Authentication auth,
@@ -106,5 +108,37 @@ public class AdminController {
                                                                @PathVariable Integer documentId) {
         investmentService.removeDocument(documentId);
         return ResponseEntity.ok(Map.of("message", "Document removed."));
+    }
+
+    // ── Admin MFA management ──────────────────────────────────────────────────
+
+    @GetMapping("/mfa/status")
+    public ResponseEntity<MfaStatusResponse> getMfaStatus(Authentication auth) {
+        return ResponseEntity.ok(mfaService.getStatusForAdmin(auth.getName()));
+    }
+
+    @PostMapping("/mfa/setup/totp")
+    public ResponseEntity<MfaSetupTotpResponse> setupTotp(Authentication auth) {
+        return ResponseEntity.ok(mfaService.setupTotpForAdmin(auth.getName()));
+    }
+
+    @PostMapping("/mfa/send-otp")
+    public ResponseEntity<Void> sendMfaOtp(Authentication auth) {
+        mfaService.sendOtpForAdmin(auth.getName());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/mfa/enable")
+    public ResponseEntity<Void> enableMfa(Authentication auth,
+                                          @Valid @RequestBody EnableMfaRequest request) {
+        mfaService.enableMfaForAdmin(auth.getName(), request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/mfa/disable")
+    public ResponseEntity<Void> disableMfa(Authentication auth,
+                                           @Valid @RequestBody DisableMfaRequest request) {
+        mfaService.disableMfaForAdmin(auth.getName(), request);
+        return ResponseEntity.noContent().build();
     }
 }

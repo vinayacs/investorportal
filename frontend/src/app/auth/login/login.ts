@@ -29,8 +29,12 @@ export class LoginComponent {
     this.authService.login({ username: this.username, password: this.password }).subscribe({
       next: res => {
         this.loading = false;
+        if (res.mfaPending) {
+          this.router.navigate(['/mfa-verify']);
+        } else {
+          this.router.navigate([res.role === 'ADMIN' ? '/admin' : '/dashboard']);
+        }
         this.cdr.detectChanges();
-        this.router.navigate([res.role === 'ADMIN' ? '/admin' : '/dashboard']);
       },
       error: () => {
         this.loading = false;

@@ -12,9 +12,15 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
-        HttpStatus status = ex.getMessage() != null && ex.getMessage().contains("not found")
-                ? HttpStatus.NOT_FOUND
-                : HttpStatus.UNAUTHORIZED;
-        return ResponseEntity.status(status).body(Map.of("error", ex.getMessage()));
+        String msg = ex.getMessage();
+        HttpStatus status;
+        if (msg != null && msg.toLowerCase().contains("not found")) {
+            status = HttpStatus.NOT_FOUND;
+        } else if (msg != null && (msg.contains("Invalid credentials") || msg.contains("Account is inactive"))) {
+            status = HttpStatus.UNAUTHORIZED;
+        } else {
+            status = HttpStatus.BAD_REQUEST;
+        }
+        return ResponseEntity.status(status).body(Map.of("message", msg != null ? msg : "An error occurred"));
     }
 }

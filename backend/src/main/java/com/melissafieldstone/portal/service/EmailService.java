@@ -27,4 +27,13 @@ public class EmailService {
         message.setText("Click the link below to reset your password. This link expires in 1 hour.\n\n" + resetLink);
         mailSender.send(message);
     }
+
+    public void sendMfaOtpEmail(String toEmail, String otp) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(toEmail);
+        message.setSubject("Investor Portal — Verification Code");
+        message.setText("Your verification code is: " + otp + "\n\nThis code expires in 10 minutes. Do not share it with anyone.");
+        mailSender.send(message);
+    }
 }

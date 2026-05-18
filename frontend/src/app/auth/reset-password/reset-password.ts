@@ -33,7 +33,10 @@ export class ResetPasswordComponent implements OnInit {
 
   onSubmit(): void {
     if (this.newPassword !== this.confirm) { this.error = 'Passwords do not match.'; return; }
-    if (this.newPassword.length < 8) { this.error = 'Password must be at least 8 characters.'; return; }
+    if (!/^(?=.*[0-9])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/.test(this.newPassword)) {
+      this.error = 'Password must be at least 8 characters and contain at least one number and one special character.';
+      return;
+    }
     this.error = '';
     this.loading = true;
     this.authService.resetPassword(this.token, this.newPassword).subscribe({
@@ -43,9 +46,9 @@ export class ResetPasswordComponent implements OnInit {
         this.cdr.detectChanges();
         setTimeout(() => this.router.navigate(['/login']), 3000);
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.error = 'Invalid or expired token. Please request a new reset link.';
+        this.error = err.error?.message || 'Invalid or expired token. Please request a new reset link.';
         this.cdr.detectChanges();
       }
     });

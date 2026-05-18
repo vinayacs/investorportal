@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Investor, Investment, LoginLog } from '../models/investor.model';
+import { Investor, Investment, LoginLog, MfaSetupTotp, MfaStatus } from '../models/investor.model';
 
 const API = '/api';
 
@@ -87,5 +87,27 @@ export class InvestorService {
 
   getDocumentPdf(documentId: number): Observable<ArrayBuffer> {
     return this.http.get(`${API}/investor/documents/${documentId}`, { responseType: 'arraybuffer' });
+  }
+
+  // ── Investor MFA management ───────────────────────────────────────────────
+
+  getMfaStatus(): Observable<MfaStatus> {
+    return this.http.get<MfaStatus>(`${API}/investor/me/mfa/status`);
+  }
+
+  setupTotp(): Observable<MfaSetupTotp> {
+    return this.http.post<MfaSetupTotp>(`${API}/investor/me/mfa/setup/totp`, {});
+  }
+
+  sendMfaOtp(): Observable<void> {
+    return this.http.post<void>(`${API}/investor/me/mfa/send-otp`, {});
+  }
+
+  enableMfa(type: string, code: string, secret?: string): Observable<void> {
+    return this.http.post<void>(`${API}/investor/me/mfa/enable`, { type, code, secret });
+  }
+
+  disableMfa(type: string, code: string): Observable<void> {
+    return this.http.post<void>(`${API}/investor/me/mfa/disable`, { type, code });
   }
 }

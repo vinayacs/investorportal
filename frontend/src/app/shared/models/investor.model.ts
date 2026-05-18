@@ -25,6 +25,9 @@ export interface LoginResponse {
   role: string;
   firstName: string;
   lastName: string;
+  mfaPending: boolean;
+  mfaToken: string;
+  mfaType: string;
 }
 
 export interface InvestorSummary {
@@ -61,4 +64,14 @@ export interface LoginLog {
   status: string;
   failureReason: string;
   action: string;
+}
+
+export interface MfaStatus {
+  emailEnabled: boolean;
+  totpEnabled: boolean;
+}
+
+export interface MfaSetupTotp {
+  secret: string;
+  otpauthUrl: string;
 }

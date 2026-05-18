@@ -1,13 +1,32 @@
 package com.melissafieldstone.portal.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
+@NoArgsConstructor
 public class LoginResponse {
     private String token;
     private String role;
     private String firstName;
     private String lastName;
+    private boolean mfaPending;
+    private String mfaToken;
+    private String mfaType;
+
+    public LoginResponse(String token, String role, String firstName, String lastName) {
+        this.token = token;
+        this.role = role;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.mfaPending = false;
+    }
+
+    public static LoginResponse pending(String mfaToken, String mfaType) {
+        LoginResponse r = new LoginResponse();
+        r.mfaPending = true;
+        r.mfaToken = mfaToken;
+        r.mfaType = mfaType;
+        return r;
+    }
 }

@@ -20,11 +20,9 @@
     @if (saved) {
       <div class="success-msg">Profile updated successfully.</div>
     }
-
     @if (error) {
       <div class="error-msg">{{ error }}</div>
     }
-
     @if (!investor && !error) {
       <div class="loading">Loading profile...</div>
     }
@@ -114,14 +112,12 @@
             {{ pwMode ? 'Cancel' : 'Change Password' }}
           </button>
         </div>
-
         @if (pwSaved) {
           <div class="success-msg">Password changed successfully.</div>
         }
         @if (pwError) {
           <div class="error-msg">{{ pwError }}</div>
         }
-
         @if (pwMode) {
           <form (ngSubmit)="changePassword()" class="pw-form">
             <div class="field">
@@ -137,6 +133,123 @@
               <input type="password" [(ngModel)]="pwForm.confirmPassword" name="confirmPassword" required />
             </div>
             <button type="submit" class="save-btn">Update Password</button>
+          </form>
+        }
+      </div>
+
+      <!-- Two-Factor Authentication -->
+      <div class="section">
+        <h2>Two-Factor Authentication (2FA)</h2>
+
+        @if (mfaSuccess) {
+          <div class="success-msg">{{ mfaSuccess }}</div>
+        }
+        @if (mfaError) {
+          <div class="error-msg">{{ mfaError }}</div>
+        }
+
+        @if (mfaView === 'status') {
+          <div class="mfa-method-row">
+            <div class="mfa-method-info">
+              <span class="mfa-method-name">Email OTP</span>
+              <span class="mfa-method-desc">Receive a one-time code by email on login</span>
+            </div>
+            <div class="mfa-method-actions">
+              @if (mfaStatus?.emailEnabled) {
+                <span class="badge-enabled">Enabled</span>
+                <button class="danger-btn-sm" (click)="startEmailDisable()">Disable</button>
+              } @else {
+                <span class="badge-disabled">Disabled</span>
+                <button class="save-btn-sm" (click)="startEmailSetup()">Enable</button>
+              }
+            </div>
+          </div>
+          <div class="mfa-method-row">
+            <div class="mfa-method-info">
+              <span class="mfa-method-name">Authenticator App</span>
+              <span class="mfa-method-desc">Use Google Authenticator or Authy on login</span>
+            </div>
+            <div class="mfa-method-actions">
+              @if (mfaStatus?.totpEnabled) {
+                <span class="badge-enabled">Enabled</span>
+                <button class="danger-btn-sm" (click)="startTotpDisable()">Disable</button>
+              } @else {
+                <span class="badge-disabled">Disabled</span>
+                <button class="save-btn-sm" (click)="startTotpSetup()">Enable</button>
+              }
+            </div>
+          </div>
+        }
+
+        @if (mfaView === 'enable-email') {
+          <p class="mfa-hint">A verification code will be sent to your email each time you log in.</p>
+          @if (!mfaOtpSent) {
+            <button class="save-btn" (click)="sendEmailOtp()">Send verification code</button>
+            <button type="button" class="cancel-btn" style="margin-top:8px" (click)="cancelMfa()">Cancel</button>
+          } @else {
+            <form (ngSubmit)="confirmEnable()" class="mfa-form">
+              <div class="field">
+                <span class="label">Enter code sent to your email</span>
+                <input type="text" [(ngModel)]="mfaCode" name="mfaCode" maxlength="6" inputmode="numeric" placeholder="000000" required />
+              </div>
+              <div class="mfa-actions">
+                <button type="submit" class="save-btn">Enable Email OTP</button>
+                <button type="button" class="cancel-btn" (click)="cancelMfa()">Cancel</button>
+              </div>
+            </form>
+          }
+        }
+
+        @if (mfaView === 'enable-totp') {
+          <p class="mfa-hint">Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.), then enter the 6-digit code to confirm.</p>
+          @if (qrDataUrl) {
+            <div class="qr-container">
+              <img [src]="qrDataUrl" alt="TOTP QR Code" />
+              <p class="secret-label">Manual entry key: <code>{{ totpSetup?.secret }}</code></p>
+            </div>
+          }
+          <form (ngSubmit)="confirmEnable()" class="mfa-form">
+            <div class="field">
+              <span class="label">Enter code from authenticator app</span>
+              <input type="text" [(ngModel)]="mfaCode" name="mfaCode" maxlength="6" inputmode="numeric" placeholder="000000" required />
+            </div>
+            <div class="mfa-actions">
+              <button type="submit" class="save-btn">Enable Authenticator App</button>
+              <button type="button" class="cancel-btn" (click)="cancelMfa()">Cancel</button>
+            </div>
+          </form>
+        }
+
+        @if (mfaView === 'disable-email') {
+          <p class="mfa-hint">Enter your email verification code to disable Email OTP.</p>
+          @if (!mfaOtpSent) {
+            <button class="save-btn" (click)="sendEmailOtp()">Send verification code</button>
+            <button type="button" class="cancel-btn" style="margin-top:8px" (click)="cancelMfa()">Cancel</button>
+          } @else {
+            <form (ngSubmit)="confirmDisable()" class="mfa-form">
+              <div class="field">
+                <span class="label">Enter code sent to your email</span>
+                <input type="text" [(ngModel)]="mfaCode" name="mfaCode" maxlength="6" inputmode="numeric" placeholder="000000" required />
+              </div>
+              <div class="mfa-actions">
+                <button type="submit" class="danger-btn">Disable Email OTP</button>
+                <button type="button" class="cancel-btn" (click)="cancelMfa()">Cancel</button>
+              </div>
+            </form>
+          }
+        }
+
+        @if (mfaView === 'disable-totp') {
+          <p class="mfa-hint">Enter the current code from your authenticator app to disable it.</p>
+          <form (ngSubmit)="confirmDisable()" class="mfa-form">
+            <div class="field">
+              <span class="label">Authenticator code</span>
+              <input type="text" [(ngModel)]="mfaCode" name="mfaCode" maxlength="6" inputmode="numeric" placeholder="000000" required />
+            </div>
+            <div class="mfa-actions">
+              <button type="submit" class="danger-btn">Disable Authenticator App</button>
+              <button type="button" class="cancel-btn" (click)="cancelMfa()">Cancel</button>
+            </div>
           </form>
         }
       </div>

@@ -13,6 +13,36 @@
 
   <main class="content">
     <h1>Login Activity Logs</h1>
+
+    <!-- User Summary Report -->
+    <div class="summary-section">
+      <h2>User Login Summary</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Investor</th>
+              <th>Last Login</th>
+              <th>Successful Logins</th>
+              <th>Failed Logins</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (u of userSummary; track u.name) {
+              <tr>
+                <td>{{ u.name }}</td>
+                <td>{{ u.lastLogin | date:'medium' }}</td>
+                <td><span class="count success">{{ u.successful }}</span></td>
+                <td><span class="count" [class.failed]="u.failed > 0">{{ u.failed }}</span></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Activity Log -->
+    <h2 class="section-title">Activity Log</h2>
     <div class="table-wrap">
       <table>
         <thead>

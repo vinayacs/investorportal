@@ -1,12 +1,10 @@
 package com.melissafieldstone.portal.controller;
 
-import com.melissafieldstone.portal.dto.ChangePasswordRequest;
-import com.melissafieldstone.portal.dto.InvestmentResponse;
-import com.melissafieldstone.portal.dto.InvestorResponse;
-import com.melissafieldstone.portal.dto.InvestorUpdateRequest;
+import com.melissafieldstone.portal.dto.*;
 import com.melissafieldstone.portal.service.AuthService;
 import com.melissafieldstone.portal.service.InvestmentService;
 import com.melissafieldstone.portal.service.InvestorService;
+import com.melissafieldstone.portal.service.MfaService;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +23,7 @@ public class InvestorController {
     private final InvestorService investorService;
     private final InvestmentService investmentService;
     private final AuthService authService;
+    private final MfaService mfaService;
 
     @GetMapping("/me")
     public ResponseEntity<InvestorResponse> getMyProfile(Authentication auth) {
@@ -54,5 +53,37 @@ public class InvestorController {
                                Authentication auth,
                                HttpServletResponse response) throws IOException {
         investmentService.streamDocument(documentId, auth.getName(), response);
+    }
+
+    // ── MFA management ────────────────────────────────────────────────────────
+
+    @GetMapping("/me/mfa/status")
+    public ResponseEntity<MfaStatusResponse> getMfaStatus(Authentication auth) {
+        return ResponseEntity.ok(mfaService.getStatusForInvestor(auth.getName()));
+    }
+
+    @PostMapping("/me/mfa/setup/totp")
+    public ResponseEntity<MfaSetupTotpResponse> setupTotp(Authentication auth) {
+        return ResponseEntity.ok(mfaService.setupTotpForInvestor(auth.getName()));
+    }
+
+    @PostMapping("/me/mfa/send-otp")
+    public ResponseEntity<Void> sendMfaOtp(Authentication auth) {
+        mfaService.sendOtpForInvestor(auth.getName());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/me/mfa/enable")
+    public ResponseEntity<Void> enableMfa(Authentication auth,
+                                          @Valid @RequestBody EnableMfaRequest request) {
+        mfaService.enableMfaForInvestor(auth.getName(), request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/me/mfa/disable")
+    public ResponseEntity<Void> disableMfa(Authentication auth,
+                                           @Valid @RequestBody DisableMfaRequest request) {
+        mfaService.disableMfaForInvestor(auth.getName(), request);
+        return ResponseEntity.noContent().build();
     }
 }
