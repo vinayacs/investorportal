@@ -20,6 +20,7 @@ export class MfaVerifyComponent implements OnInit {
   code = '';
   error = '';
   loading = false;
+  navigating = false;
   resending = false;
   resent = false;
 
@@ -60,13 +61,13 @@ export class MfaVerifyComponent implements OnInit {
   }
 
   onSubmit(): void {
+    if (this.loading || this.navigating) return;
     this.error = '';
     this.loading = true;
     this.authService.verifyMfa(this.mfaToken, this.code).subscribe({
       next: res => {
-        this.loading = false;
+        this.navigating = true;
         this.router.navigate([res.role === 'ADMIN' ? '/admin' : '/dashboard']);
-        this.cdr.detectChanges();
       },
       error: err => {
         this.loading = false;

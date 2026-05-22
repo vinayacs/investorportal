@@ -46,6 +46,11 @@ button[type="submit"] { background: #003366; color: white; border: none; padding
 .no-docs { color: #aaa; font-size: 0.85rem; margin: 0 0 16px; }
 .add-doc-form { border-top: 1px solid #eee; padding-top: 16px;
   h3 { font-size: 0.85rem; font-weight: 600; color: #555; margin: 0 0 12px; } }
+.doc-mode-toggle { display: flex; gap: 0; margin-bottom: 14px; border: 1px solid #ccc; border-radius: 6px; overflow: hidden; width: fit-content;
+  button { background: white; border: none; padding: 7px 16px; font-size: 0.82rem; cursor: pointer; color: #555;
+    &:hover { background: #f0f4ff; }
+    &.active { background: #003366; color: white; }
+    & + button { border-left: 1px solid #ccc; } } }
 .doc-field-row { display: flex; gap: 12px; align-items: flex-end;
   .form-group { flex: 1; } }
 .add-doc-btn { background: #003366; color: white; border: none; padding: 9px 20px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; white-space: nowrap;

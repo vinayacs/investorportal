@@ -30,9 +30,17 @@ services:
       SPRING_MAIL_PORT: ${MAIL_PORT}
       SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
       SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+    volumes:
+      - uploads:/uploads
     depends_on:
       db:
         condition: service_healthy
+
+  property-agent:
+    build: ./property-agent
+    restart: always
+    depends_on:
+      - backend
 
   frontend:
     build: ./frontend
@@ -41,6 +49,8 @@ services:
       - "80:80"
     depends_on:
       - backend
+      - property-agent
 
 volumes:
   pgdata:
+  uploads:

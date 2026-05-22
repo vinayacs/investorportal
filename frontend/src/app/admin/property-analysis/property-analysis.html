@@ -1,0 +1,109 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Admin Portal</div>
+    <ul>
+      <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
+      <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login Logs</a></li>
+      <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+    </ul>
+    <button class="logout-btn" (click)="logout()">Logout</button>
+  </nav>
+
+  <main class="content">
+    <h1>Property Analysis</h1>
+    <p class="subtitle">Enter a Texas property address to retrieve county appraisal data for the past 3 years.</p>
+
+    <div class="search-card">
+      <div class="search-row">
+        <input
+          [(ngModel)]="address"
+          placeholder="e.g. 1234 Main St, Houston, TX 77001"
+          (keydown.enter)="analyze()"
+          class="address-input"
+        />
+        <button class="analyze-btn" (click)="analyze()" [disabled]="loading || !address.trim()">
+          {{ loading ? 'Analyzing...' : 'Analyze' }}
+        </button>
+      </div>
+      <p class="hint">Supported counties: Harris, Dallas, Tarrant, Collin, Denton, Fort Bend, Montgomery, Williamson, Bexar, Brazoria, Galveston</p>
+    </div>
+
+    @if (error) {
+      <div class="error-msg">{{ error }}</div>
+    }
+
+    @if (loading) {
+      <div class="loading-card">
+        <div class="spinner"></div>
+        <p>Fetching county appraisal data...</p>
+      </div>
+    }
+
+    @if (result) {
+      @if (!result.supported) {
+        <div class="unsupported-card">
+          <span class="unsupported-icon">⚠</span>
+          <div>
+            <strong>{{ result.county }} County not yet supported</strong>
+            <p>{{ result.message }}</p>
+          </div>
+        </div>
+      } @else if (result.years.length === 0) {
+        <div class="not-found-card">
+          <span>No appraisal records found for:</span>
+          <strong>{{ result.address }}</strong>
+          <p>{{ result.message }}</p>
+        </div>
+      } @else {
+        <div class="result-card">
+          <div class="result-header">
+            <div>
+              <div class="result-address">{{ result.propertyAddress || result.address }}</div>
+              <div class="result-meta">{{ result.county }} County &bull; Property ID: {{ result.propertyId }}</div>
+            </div>
+            @if (result.cadUrl) {
+              <a [href]="result.cadUrl" target="_blank" class="cad-link">View on CAD site ↗</a>
+            }
+          </div>
+
+          <table class="appraisal-table">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Land Value</th>
+                <th>Improvement Value</th>
+                <th>Appraised Value</th>
+                <th>Taxable Value</th>
+                <th>YoY Change</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of result.years; track row.year; let i = $index) {
+                <tr>
+                  <td class="year-cell">{{ row.year }}</td>
+                  <td>{{ formatCurrency(row.landValue) }}</td>
+                  <td>{{ formatCurrency(row.improvementValue) }}</td>
+                  <td class="appraised-val">{{ formatCurrency(row.appraisedValue) }}</td>
+                  <td>{{ formatCurrency(row.taxableValue) }}</td>
+                  <td>
+                    @if (i > 0) {
+                      <span [class]="changeClass(row.appraisedValue, result!.years[i-1].appraisedValue)"
+                            class="change-badge">
+                        {{ changePercent(row.appraisedValue, result!.years[i-1].appraisedValue) }}
+                      </span>
+                    } @else {
+                      <span class="change-badge baseline">Baseline</span>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+  </main>
+</div>

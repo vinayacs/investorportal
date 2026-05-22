@@ -12,18 +12,25 @@ import com.melissafieldstone.portal.repository.InvestorCredentialsRepository;
 import com.melissafieldstone.portal.repository.InvestorRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,6 +42,9 @@ public class InvestmentService {
     private final InvestmentDocumentRepository documentRepo;
     private final InvestorRepository investorRepo;
     private final InvestorCredentialsRepository credentialsRepo;
+
+    @Value("${app.upload-dir:/uploads}")
+    private String uploadDir;
 
     public List<InvestmentResponse> getAllInvestments() {
         return investmentRepo.findAllByDeletedFalse().stream().map(this::toResponse).toList();
@@ -88,6 +98,26 @@ public class InvestmentService {
         investmentRepo.save(investment);
     }
 
+    public InvestmentResponse uploadDocument(Integer investmentId, String name, MultipartFile file) {
+        Investment investment = investmentRepo.findById(investmentId)
+                .orElseThrow(() -> new RuntimeException("Investment not found"));
+        try {
+            Path dir = Paths.get(uploadDir);
+            Files.createDirectories(dir);
+            String original = file.getOriginalFilename() != null ? file.getOriginalFilename() : "file";
+            String filename = UUID.randomUUID() + "_" + original.replaceAll("[^a-zA-Z0-9._-]", "_");
+            Files.copy(file.getInputStream(), dir.resolve(filename), StandardCopyOption.REPLACE_EXISTING);
+            InvestmentDocument doc = new InvestmentDocument();
+            doc.setInvestment(investment);
+            doc.setName(name);
+            doc.setUrl(filename);
+            documentRepo.save(doc);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to store file: " + e.getMessage());
+        }
+        return toResponse(investmentRepo.findById(investmentId).orElseThrow());
+    }
+
     public InvestmentResponse addDocument(Integer investmentId, AddDocumentRequest request) {
         Investment investment = investmentRepo.findById(investmentId)
                 .orElseThrow(() -> new RuntimeException("Investment not found"));
@@ -99,11 +129,10 @@ public class InvestmentService {
         return toResponse(investmentRepo.findById(investmentId).orElseThrow());
     }
 
-    public InvestmentResponse updateDocument(Integer documentId, AddDocumentRequest request) {
+    public InvestmentResponse updateDocument(Integer documentId, String newName) {
         InvestmentDocument doc = documentRepo.findById(documentId)
                 .orElseThrow(() -> new RuntimeException("Document not found"));
-        doc.setName(request.getName());
-        doc.setUrl(request.getUrl());
+        doc.setName(newName);
         documentRepo.save(doc);
         return toResponse(investmentRepo.findById(doc.getInvestment().getInvestmentId()).orElseThrow());
     }
@@ -125,17 +154,29 @@ public class InvestmentService {
                 .anyMatch(inv -> inv.getInvestorId().equals(investorId));
         if (!hasAccess) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
 
-        String pdfUrl = toDriveDownloadUrl(doc.getUrl());
+        String url = doc.getUrl();
+        String filename = url.contains("_") ? url.substring(url.indexOf('_') + 1) : url;
         response.setContentType("application/pdf");
-        response.setHeader("Content-Disposition", "inline");
+        response.setHeader("Content-Disposition", "inline; filename=\"" + filename + "\"");
 
-        HttpURLConnection conn = (HttpURLConnection) new URL(pdfUrl).openConnection();
-        conn.setInstanceFollowRedirects(true);
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-        try (InputStream in = conn.getInputStream()) {
-            StreamUtils.copy(in, response.getOutputStream());
-        } finally {
-            conn.disconnect();
+        if (!url.startsWith("http")) {
+            // Local file
+            Path filePath = Paths.get(uploadDir).resolve(url);
+            if (!Files.exists(filePath)) throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+            try (InputStream in = Files.newInputStream(filePath)) {
+                StreamUtils.copy(in, response.getOutputStream());
+            }
+        } else {
+            // Legacy external URL (Google Drive etc.)
+            String pdfUrl = toDriveDownloadUrl(url);
+            HttpURLConnection conn = (HttpURLConnection) new URL(pdfUrl).openConnection();
+            conn.setInstanceFollowRedirects(true);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            try (InputStream in = conn.getInputStream()) {
+                StreamUtils.copy(in, response.getOutputStream());
+            } finally {
+                conn.disconnect();
+            }
         }
     }
 

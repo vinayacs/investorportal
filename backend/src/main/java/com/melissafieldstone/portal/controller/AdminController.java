@@ -7,9 +7,12 @@ import com.melissafieldstone.portal.service.InvestmentService;
 import com.melissafieldstone.portal.service.MfaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -22,6 +25,10 @@ public class AdminController {
     private final AdminService adminService;
     private final InvestmentService investmentService;
     private final AuthService authService;
+    private final RestTemplate restTemplate;
+
+    @Value("${app.property-agent-url:http://property-agent:8000}")
+    private String propertyAgentUrl;
     private final MfaService mfaService;
 
     @PostMapping("/change-password")
@@ -90,17 +97,24 @@ public class AdminController {
         return ResponseEntity.ok(Map.of("message", "Investment deleted."));
     }
 
-    @PostMapping("/investments/{id}/documents")
-    public ResponseEntity<InvestmentResponse> addDocument(@PathVariable Integer id,
-                                                           @Valid @RequestBody AddDocumentRequest request) {
+    @PostMapping("/investments/{id}/documents/upload")
+    public ResponseEntity<InvestmentResponse> uploadDocument(@PathVariable Integer id,
+                                                              @RequestParam("name") String name,
+                                                              @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.ok(investmentService.uploadDocument(id, name, file));
+    }
+
+    @PostMapping("/investments/{id}/documents/link")
+    public ResponseEntity<InvestmentResponse> linkDocument(@PathVariable Integer id,
+                                                            @Valid @RequestBody AddDocumentRequest request) {
         return ResponseEntity.ok(investmentService.addDocument(id, request));
     }
 
     @PatchMapping("/investments/{id}/documents/{documentId}")
     public ResponseEntity<InvestmentResponse> updateDocument(@PathVariable Integer id,
                                                               @PathVariable Integer documentId,
-                                                              @Valid @RequestBody AddDocumentRequest request) {
-        return ResponseEntity.ok(investmentService.updateDocument(documentId, request));
+                                                              @RequestBody Map<String, String> body) {
+        return ResponseEntity.ok(investmentService.updateDocument(documentId, body.get("name")));
     }
 
     @DeleteMapping("/investments/{id}/documents/{documentId}")
@@ -108,6 +122,15 @@ public class AdminController {
                                                                @PathVariable Integer documentId) {
         investmentService.removeDocument(documentId);
         return ResponseEntity.ok(Map.of("message", "Document removed."));
+    }
+
+    // ── Property analysis ────────────────────────────────────────────────────
+
+    @GetMapping("/property-analysis")
+    public ResponseEntity<Map> analyzeProperty(@RequestParam String address) {
+        String url = propertyAgentUrl + "/analyze";
+        Map result = restTemplate.postForObject(url, Map.of("address", address), Map.class);
+        return ResponseEntity.ok(result);
     }
 
     // ── Admin MFA management ──────────────────────────────────────────────────

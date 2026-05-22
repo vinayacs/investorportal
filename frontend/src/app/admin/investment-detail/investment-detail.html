@@ -5,6 +5,7 @@
       <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
       <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
       <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
       <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login Logs</a></li>
       <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
     </ul>
@@ -80,8 +81,7 @@
                 <li>
                   @if (editingDocId === doc.documentId) {
                     <div class="doc-edit-row">
-                      <input [(ngModel)]="editDoc.name" name="editDocName" placeholder="Document name" />
-                      <input [(ngModel)]="editDoc.url" name="editDocUrl" placeholder="URL" />
+                      <input [(ngModel)]="editDocName" name="editDocName" placeholder="Document name" />
                       <button class="save-doc-btn" type="button" (click)="saveEdit(doc.documentId)">Save</button>
                       <button class="cancel-doc-btn" type="button" (click)="cancelEdit()">Cancel</button>
                     </div>
@@ -101,16 +101,29 @@
 
           <div class="add-doc-form">
             <h3>Add Document</h3>
+            <div class="doc-mode-toggle">
+              <button type="button" [class.active]="docMode === 'upload'" (click)="docMode = 'upload'">Upload File</button>
+              <button type="button" [class.active]="docMode === 'link'" (click)="docMode = 'link'">Link External URL</button>
+            </div>
             <div class="doc-field-row">
               <div class="form-group">
                 <label>Document Name</label>
                 <input [(ngModel)]="newDoc.name" name="docName" placeholder="e.g. Q1 Report" />
               </div>
-              <div class="form-group">
-                <label>URL</label>
-                <input [(ngModel)]="newDoc.url" name="docUrl" placeholder="https://drive.google.com/file/d/..." />
-              </div>
-              <button type="button" class="add-doc-btn" (click)="addDocument()">Add</button>
+              @if (docMode === 'upload') {
+                <div class="form-group">
+                  <label>File (PDF)</label>
+                  <input type="file" accept=".pdf" (change)="onFileSelect($event)" name="docFile" class="file-input" />
+                </div>
+              } @else {
+                <div class="form-group">
+                  <label>External URL</label>
+                  <input [(ngModel)]="newDoc.url" name="docUrl" placeholder="https://drive.google.com/..." />
+                </div>
+              }
+              <button type="button" class="add-doc-btn" (click)="addDocument()" [disabled]="uploading">
+                {{ uploading ? 'Saving...' : (docMode === 'upload' ? 'Upload' : 'Link') }}
+              </button>
             </div>
             @if (docError) { <div class="error-msg" style="margin-top:8px">{{ docError }}</div> }
           </div>

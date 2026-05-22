@@ -21,9 +21,11 @@ export class InvestmentDetailComponent implements OnInit {
   docError = '';
   allInvestors: Investor[] = [];
   selectedInvestorIds: Set<number> = new Set();
-  newDoc = { name: '', url: '' };
+  newDoc = { name: '', file: null as File | null, url: '' };
+  docMode: 'upload' | 'link' = 'upload';
+  uploading = false;
   editingDocId: number | null = null;
-  editDoc = { name: '', url: '' };
+  editDocName = '';
 
   form: any = {
     name: '', startDate: '', anticipatedEndDate: '', endDate: '',
@@ -109,7 +111,7 @@ export class InvestmentDetailComponent implements OnInit {
 
   startEdit(doc: { documentId: number; name: string; url: string }): void {
     this.editingDocId = doc.documentId;
-    this.editDoc = { name: doc.name, url: doc.url };
+    this.editDocName = doc.name;
     this.cdr.detectChanges();
   }
 
@@ -120,13 +122,13 @@ export class InvestmentDetailComponent implements OnInit {
 
   saveEdit(documentId: number): void {
     this.docError = '';
-    if (!this.editDoc.name.trim() || !this.editDoc.url.trim()) {
-      this.docError = 'Both name and URL are required.';
+    if (!this.editDocName.trim()) {
+      this.docError = 'Document name is required.';
       this.cdr.detectChanges();
       return;
     }
-    this.investorService.updateDocument(this.investment!.investmentId, documentId, this.editDoc).subscribe({
-      next: data => {
+    this.investorService.updateDocument(this.investment!.investmentId, documentId, { name: this.editDocName }).subscribe({
+      next: (data: any) => {
         this.investment = data;
         this.editingDocId = null;
         this.cdr.detectChanges();
@@ -138,24 +140,54 @@ export class InvestmentDetailComponent implements OnInit {
     });
   }
 
+  onFileSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.newDoc.file = input.files?.[0] ?? null;
+  }
+
   addDocument(): void {
     this.docError = '';
-    if (!this.newDoc.name.trim() || !this.newDoc.url.trim()) {
-      this.docError = 'Both name and URL are required.';
-      this.cdr.detectChanges();
-      return;
-    }
-    this.investorService.addDocument(this.investment!.investmentId, this.newDoc).subscribe({
-      next: data => {
-        this.investment = data;
-        this.newDoc = { name: '', url: '' };
+    if (this.docMode === 'upload') {
+      if (!this.newDoc.name.trim() || !this.newDoc.file) {
+        this.docError = 'Document name and file are required.';
         this.cdr.detectChanges();
-      },
-      error: () => {
-        this.docError = 'Failed to add document.';
-        this.cdr.detectChanges();
+        return;
       }
-    });
+      this.uploading = true;
+      this.investorService.uploadDocument(this.investment!.investmentId, this.newDoc.name, this.newDoc.file!).subscribe({
+        next: (data: any) => {
+          this.investment = data;
+          this.newDoc = { name: '', file: null, url: '' };
+          this.uploading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.docError = 'Failed to upload document.';
+          this.uploading = false;
+          this.cdr.detectChanges();
+        }
+      });
+    } else {
+      if (!this.newDoc.name.trim() || !this.newDoc.url.trim()) {
+        this.docError = 'Document name and URL are required.';
+        this.cdr.detectChanges();
+        return;
+      }
+      this.uploading = true;
+      this.investorService.linkDocument(this.investment!.investmentId, this.newDoc.name, this.newDoc.url).subscribe({
+        next: (data: any) => {
+          this.investment = data;
+          this.newDoc = { name: '', file: null, url: '' };
+          this.uploading = false;
+          this.cdr.detectChanges();
+        },
+        error: () => {
+          this.docError = 'Failed to link document.';
+          this.uploading = false;
+          this.cdr.detectChanges();
+        }
+      });
+    }
   }
 
   removeDocument(documentId: number): void {

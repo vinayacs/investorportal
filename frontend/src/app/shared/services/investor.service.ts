@@ -64,11 +64,18 @@ export class InvestorService {
     return this.http.delete(`${API}/admin/investments/${id}`);
   }
 
-  addDocument(investmentId: number, data: { name: string; url: string }): Observable<Investment> {
-    return this.http.post<Investment>(`${API}/admin/investments/${investmentId}/documents`, data);
+  uploadDocument(investmentId: number, name: string, file: File): Observable<Investment> {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('file', file);
+    return this.http.post<Investment>(`${API}/admin/investments/${investmentId}/documents/upload`, formData);
   }
 
-  updateDocument(investmentId: number, documentId: number, data: { name: string; url: string }): Observable<Investment> {
+  linkDocument(investmentId: number, name: string, url: string): Observable<Investment> {
+    return this.http.post<Investment>(`${API}/admin/investments/${investmentId}/documents/link`, { name, url });
+  }
+
+  updateDocument(investmentId: number, documentId: number, data: { name: string }): Observable<Investment> {
     return this.http.patch<Investment>(`${API}/admin/investments/${investmentId}/documents/${documentId}`, data);
   }
 
