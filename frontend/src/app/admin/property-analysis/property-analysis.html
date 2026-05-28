@@ -6,7 +6,8 @@
       <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
       <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
       <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
-      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login Logs</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login History</a></li>
+      <li><a routerLink="/admin/monitoring" routerLinkActive="active">Monitoring</a></li>
       <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
     </ul>
     <button class="logout-btn" (click)="logout()">Logout</button>
@@ -18,13 +19,34 @@
 
     <div class="search-card">
       <div class="search-row">
-        <input
-          [(ngModel)]="address"
-          placeholder="e.g. 1234 Main St, Houston, TX 77001"
-          (keydown.enter)="analyze()"
-          class="address-input"
-        />
-        <button class="analyze-btn" (click)="analyze()" [disabled]="loading || !address.trim()">
+        <select class="search-type-select" [(ngModel)]="searchType" (ngModelChange)="onSearchTypeChange()">
+          <option value="address">Address</option>
+          <option value="propertyId">Property ID</option>
+        </select>
+
+        @if (searchType === 'address') {
+          <input
+            [(ngModel)]="address"
+            placeholder="e.g. 1234 Main St, Houston, TX 77001"
+            (keydown.enter)="analyze()"
+            class="address-input"
+          />
+        } @else {
+          <select class="county-select" [(ngModel)]="selectedCounty">
+            <option value="" disabled>Select county</option>
+            @for (c of counties; track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+          <input
+            [(ngModel)]="propertyId"
+            placeholder="e.g. 959026"
+            (keydown.enter)="analyze()"
+            class="address-input"
+          />
+        }
+
+        <button class="analyze-btn" (click)="analyze()" [disabled]="loading || !canAnalyze">
           {{ loading ? 'Analyzing...' : 'Analyze' }}
         </button>
       </div>
@@ -43,6 +65,30 @@
     }
 
     @if (result) {
+
+      <!-- County summary — always shown -->
+      <div class="county-summary">
+        <div class="county-summary-left">
+          <span class="county-label">Location</span>
+          <span class="county-name">
+            {{ result.county }} County
+            @if (result.city) { <span class="city-name">&bull; {{ result.city }}</span> }
+          </span>
+        </div>
+        <div class="county-summary-right">
+          @if (countyPortalUrl(result.county)) {
+            <a [href]="countyPortalUrl(result.county)" target="_blank" class="county-portal-link">
+              {{ result.county }} CAD ↗
+            </a>
+          }
+          @if (result.cadUrl) {
+            <a [href]="result.cadUrl" target="_blank" class="county-portal-link property-link">
+              View Property on CAD ↗
+            </a>
+          }
+        </div>
+      </div>
+
       @if (!result.supported) {
         <div class="unsupported-card">
           <span class="unsupported-icon">⚠</span>
@@ -53,9 +99,14 @@
         </div>
       } @else if (result.years.length === 0) {
         <div class="not-found-card">
-          <span>No appraisal records found for:</span>
+          <span>No appraisal records found for this address in <strong>{{ result.county }} County CAD</strong>.</span>
           <strong>{{ result.address }}</strong>
-          <p>{{ result.message }}</p>
+          @if (result.message) { <p>{{ result.message }}</p> }
+          @if (countyPortalUrl(result.county)) {
+            <a [href]="countyPortalUrl(result.county)" target="_blank" class="browse-cad-link">
+              Browse {{ result.county }} County CAD ↗
+            </a>
+          }
         </div>
       } @else {
         <div class="result-card">
@@ -64,9 +115,27 @@
               <div class="result-address">{{ result.propertyAddress || result.address }}</div>
               <div class="result-meta">{{ result.county }} County &bull; Property ID: {{ result.propertyId }}</div>
             </div>
-            @if (result.cadUrl) {
-              <a [href]="result.cadUrl" target="_blank" class="cad-link">View on CAD site ↗</a>
-            }
+          </div>
+
+          @if (result.ownerName || result.mailingAddress) {
+            <div class="owner-info">
+              @if (result.ownerName) {
+                <div class="owner-row">
+                  <span class="owner-label">Owner</span>
+                  <span class="owner-value">{{ result.ownerName }}</span>
+                </div>
+              }
+              @if (result.mailingAddress) {
+                <div class="owner-row">
+                  <span class="owner-label">Mailing Address</span>
+                  <span class="owner-value">{{ result.mailingAddress }}</span>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="chart-container">
+            <canvas #chartCanvas></canvas>
           </div>
 
           <table class="appraisal-table">

@@ -9,4 +9,5 @@ public class MfaVerifyRequest {
     private String mfaToken;
     @NotBlank
     private String code;
+    private boolean rememberDevice;
 }

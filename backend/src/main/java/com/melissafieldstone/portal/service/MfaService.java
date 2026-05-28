@@ -26,9 +26,12 @@ public class MfaService {
     private static final int OTP_EXPIRY_MINUTES = 10;
     private static final int PENDING_EXPIRY_MINUTES = 5;
 
+    private static final int TRUSTED_DEVICE_DAYS = 1;
+
     private final InvestorCredentialsRepository credentialsRepo;
     private final AdminUserRepository adminUserRepo;
     private final InvestorLoginLogRepository loginLogRepo;
+    private final TrustedDeviceRepository trustedDeviceRepo;
     private final EmailService emailService;
     private final JwtUtil jwtUtil;
 
@@ -158,7 +161,11 @@ public class MfaService {
             logAttempt(cred.getInvestor(), null, "SUCCESS", null, "LOGIN");
             String jwt = jwtUtil.generateToken(cred.getUsername(), cred.getRole());
             Investor inv = cred.getInvestor();
-            return new LoginResponse(jwt, cred.getRole(), inv.getFirstName(), inv.getLastName());
+            LoginResponse response = new LoginResponse(jwt, cred.getRole(), inv.getFirstName(), inv.getLastName());
+            if (request.isRememberDevice()) {
+                response.setDeviceToken(createTrustedDevice(cred.getUsername()));
+            }
+            return response;
         }
 
         var adminOpt = adminUserRepo.findByMfaPendingToken(token);
@@ -173,7 +180,11 @@ public class MfaService {
             clearAdminPending(admin);
             adminUserRepo.save(admin);
             String jwt = jwtUtil.generateToken(admin.getEmail(), "ADMIN");
-            return new LoginResponse(jwt, "ADMIN", admin.getName(), "");
+            LoginResponse response = new LoginResponse(jwt, "ADMIN", admin.getName(), "");
+            if (request.isRememberDevice()) {
+                response.setDeviceToken(createTrustedDevice(admin.getEmail()));
+            }
+            return response;
         }
         throw new RuntimeException("Invalid or expired MFA session.");
     }
@@ -335,6 +346,16 @@ public class MfaService {
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
+
+    private String createTrustedDevice(String username) {
+        TrustedDevice device = new TrustedDevice();
+        device.setUsername(username);
+        device.setDeviceToken(UUID.randomUUID().toString());
+        device.setCreatedAt(LocalDateTime.now());
+        device.setExpiresAt(LocalDateTime.now().plusDays(TRUSTED_DEVICE_DAYS));
+        trustedDeviceRepo.save(device);
+        return device.getDeviceToken();
+    }
 
     private void sendEmailOtpToInvestor(InvestorCredentials cred) {
         String otp = generateOtp();

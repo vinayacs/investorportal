@@ -48,6 +48,10 @@
             placeholder="000000"
             required />
         </div>
+        <div class="remember-device">
+          <input type="checkbox" id="rememberDevice" [(ngModel)]="rememberDevice" name="rememberDevice" />
+          <label for="rememberDevice">Remember this device for 1 day</label>
+        </div>
         <button type="submit" [disabled]="loading || !code">
           {{ loading ? 'Verifying...' : 'Verify' }}
         </button>

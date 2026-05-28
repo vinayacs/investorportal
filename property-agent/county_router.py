@@ -3,11 +3,11 @@ from scrapers.dcad import DCADScraper
 from scrapers.tad import TADScraper
 from scrapers.true_automation import TrueAutomationScraper
 from scrapers.denton import DentonCADScraper
+from scrapers.collin import CollinCADScraper
 
 # TrueAutomation platform client IDs for Texas counties
-# Denton is excluded — it migrated to dentoncad.com (TrueProdigy platform)
+# Denton migrated to dentoncad.com; Collin migrated to esearch.collincad.org
 TRUE_AUTO_COUNTIES = {
-    "Collin":     21,
     "Fort Bend":  79,
     "Montgomery": 170,
     "Williamson": 246,
@@ -25,6 +25,7 @@ DEDICATED_SCRAPERS = {
     "Dallas":  DCADScraper,
     "Tarrant": TADScraper,
     "Denton":  DentonCADScraper,
+    "Collin":  CollinCADScraper,
 }
 
 
@@ -44,7 +45,32 @@ def route_to_cad(county_info: dict, address: str) -> dict:
     return {
         "supported": False,
         "county": county,
+        "city": county_info.get("city", ""),
         "address": address,
         "message": f"{county} County is not yet supported. Supported counties: Harris, Dallas, Tarrant, Collin, Denton, Fort Bend, Montgomery, Williamson, Bexar, Brazoria, Galveston.",
+        "years": [],
+    }
+
+
+def route_to_cad_by_id(county_info: dict, prop_id: str) -> dict:
+    county = county_info["county"]
+
+    if county in DEDICATED_SCRAPERS:
+        scraper = DEDICATED_SCRAPERS[county]()
+        if hasattr(scraper, "get_appraisal_by_id"):
+            return scraper.get_appraisal_by_id(prop_id, county_info)
+
+    if county in TRUE_AUTO_COUNTIES:
+        scraper = TrueAutomationScraper(cid=TRUE_AUTO_COUNTIES[county])
+        if hasattr(scraper, "get_appraisal_by_id"):
+            return scraper.get_appraisal_by_id(prop_id, county_info)
+
+    return {
+        "supported": False,
+        "county": county,
+        "city": "",
+        "address": "",
+        "propertyId": prop_id,
+        "message": f"Property ID search is not yet supported for {county} County.",
         "years": [],
     }

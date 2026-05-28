@@ -9,4 +9,5 @@ public class LoginRequest {
     private String username;
     @NotBlank
     private String password;
+    private String deviceToken; // optional — present when "remember this device" was used previously
 }

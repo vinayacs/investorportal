@@ -16,6 +16,7 @@ export const routes: Routes = [
   { path: 'admin/investments/:id', canActivate: [adminGuard], loadComponent: () => import('./admin/investment-detail/investment-detail').then(m => m.InvestmentDetailComponent) },
   { path: 'admin/property-analysis', canActivate: [adminGuard], loadComponent: () => import('./admin/property-analysis/property-analysis').then(m => m.PropertyAnalysisComponent) },
   { path: 'admin/login-logs', canActivate: [adminGuard], loadComponent: () => import('./admin/login-logs/login-logs').then(m => m.LoginLogsComponent) },
+  { path: 'admin/monitoring', canActivate: [adminGuard], loadComponent: () => import('./admin/monitoring/monitoring').then(m => m.MonitoringComponent) },
   { path: 'admin/settings', canActivate: [adminGuard], loadComponent: () => import('./admin/settings/settings').then(m => m.AdminSettingsComponent) },
   { path: 'investments', canActivate: [authGuard], loadComponent: () => import('./investor/investments/investments').then(m => m.InvestmentsComponent) },
   { path: '**', redirectTo: 'login' }

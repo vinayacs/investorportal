@@ -18,6 +18,7 @@ export interface Investor {
 export interface LoginRequest {
   username: string;
   password: string;
+  deviceToken?: string;
 }
 
 export interface LoginResponse {
@@ -28,6 +29,7 @@ export interface LoginResponse {
   mfaPending: boolean;
   mfaToken: string;
   mfaType: string;
+  deviceToken?: string;
 }
 
 export interface InvestorSummary {

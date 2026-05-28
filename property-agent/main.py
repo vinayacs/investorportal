@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from geocoder import geocode_address
-from county_router import route_to_cad
+from county_router import route_to_cad, route_to_cad_by_id
 
 app = FastAPI(title="Property Analysis Agent")
 
@@ -16,6 +16,11 @@ app.add_middleware(
 
 class AnalyzeRequest(BaseModel):
     address: str
+
+
+class AnalyzeByIdRequest(BaseModel):
+    propertyId: str
+    county: str
 
 
 @app.get("/health")
@@ -37,3 +42,14 @@ def analyze(request: AnalyzeRequest):
         )
 
     return route_to_cad(county_info, address)
+
+
+@app.post("/analyze-by-id")
+def analyze_by_id(request: AnalyzeByIdRequest):
+    prop_id = request.propertyId.strip()
+    county = request.county.strip()
+    if not prop_id or not county:
+        raise HTTPException(status_code=400, detail="propertyId and county are required")
+
+    county_info = {"county": county, "city": "", "state": "Texas"}
+    return route_to_cad_by_id(county_info, prop_id)
