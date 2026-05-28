@@ -12,7 +12,9 @@ export class AuthService {
   constructor(private http: HttpClient, private router: Router) {}
 
   login(request: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${API}/login`, request).pipe(
+    const deviceToken = localStorage.getItem('deviceToken');
+    const payload = deviceToken ? { ...request, deviceToken } : request;
+    return this.http.post<LoginResponse>(`${API}/login`, payload).pipe(
       tap(res => {
         if (!res.mfaPending) {
           localStorage.setItem('token', res.token);
@@ -26,12 +28,15 @@ export class AuthService {
     );
   }
 
-  verifyMfa(mfaToken: string, code: string): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${API}/mfa/verify`, { mfaToken, code }).pipe(
+  verifyMfa(mfaToken: string, code: string, rememberDevice = false): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(`${API}/mfa/verify`, { mfaToken, code, rememberDevice }).pipe(
       tap(res => {
         localStorage.setItem('token', res.token);
         localStorage.setItem('role', res.role);
         localStorage.setItem('name', `${res.firstName} ${res.lastName}`);
+        if (res.deviceToken) {
+          localStorage.setItem('deviceToken', res.deviceToken);
+        }
         sessionStorage.removeItem('mfaToken');
         sessionStorage.removeItem('mfaType');
       })
@@ -55,7 +60,9 @@ export class AuthService {
   }
 
   logout(): void {
+    const deviceToken = localStorage.getItem('deviceToken');
     localStorage.clear();
+    if (deviceToken) localStorage.setItem('deviceToken', deviceToken);
     sessionStorage.clear();
     this.router.navigate(['/login']);
   }

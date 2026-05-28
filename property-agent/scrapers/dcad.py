@@ -72,6 +72,30 @@ class DCADScraper(BaseCADScraper):
                     })
         return candidates
 
+    def get_owner_info(self, session, account: str) -> dict:
+        # Try JSON API first
+        try:
+            resp = session.get(f"{BASE}/api/property/{account}", timeout=15)
+            if resp.ok:
+                data = resp.json()
+                if isinstance(data, dict):
+                    owner = (data.get("ownerName") or data.get("owner_name")
+                             or data.get("owner"))
+                    mail = (data.get("mailingAddress") or data.get("mailing_address")
+                            or data.get("mailAddress"))
+                    if owner or mail:
+                        return {"ownerName": owner, "mailingAddress": mail}
+        except Exception:
+            pass
+        # Fallback: HTML page
+        try:
+            resp = session.get(f"{BASE}/property/{account}", timeout=15)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "lxml")
+            return self._soup_owner_info(soup)
+        except Exception:
+            return {"ownerName": None, "mailingAddress": None}
+
     def _fetch_year(self, session, account: str, year: int) -> dict | None:
         # Try JSON endpoint first
         try:

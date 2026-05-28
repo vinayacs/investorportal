@@ -1,7 +1,7 @@
 import { Injectable, inject, NgZone } from '@angular/core';
 import { AuthService } from './auth.service';
 
-const INACTIVITY_MS = 60_000;   // 60 seconds
+const INACTIVITY_MS = 300_000;  // 300 seconds
 const CHECK_INTERVAL_MS = 5_000; // check every 5 seconds
 
 const ACTIVITY_EVENTS = [
@@ -19,6 +19,7 @@ export class InactivityService {
   private readonly resetFn = () => { this.lastActivity = Date.now(); };
 
   start(): void {
+    this.lastActivity = Date.now();   // reset timer on each new session
     if (this.intervalId !== null) return;
 
     ACTIVITY_EVENTS.forEach(event =>

@@ -1,6 +1,8 @@
 package com.melissafieldstone.portal.controller;
 
 import com.melissafieldstone.portal.dto.*;
+import com.melissafieldstone.portal.entity.ScraperLog;
+import com.melissafieldstone.portal.repository.ScraperLogRepository;
 import com.melissafieldstone.portal.service.AdminService;
 import com.melissafieldstone.portal.service.AuthService;
 import com.melissafieldstone.portal.service.InvestmentService;
@@ -14,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +30,7 @@ public class AdminController {
     private final InvestmentService investmentService;
     private final AuthService authService;
     private final RestTemplate restTemplate;
+    private final ScraperLogRepository scraperLogRepo;
 
     @Value("${app.property-agent-url:http://property-agent:8000}")
     private String propertyAgentUrl;
@@ -127,10 +132,124 @@ public class AdminController {
     // ── Property analysis ────────────────────────────────────────────────────
 
     @GetMapping("/property-analysis")
-    public ResponseEntity<Map> analyzeProperty(@RequestParam String address) {
-        String url = propertyAgentUrl + "/analyze";
-        Map result = restTemplate.postForObject(url, Map.of("address", address), Map.class);
+    public ResponseEntity<Map<String, Object>> analyzeProperty(
+            @RequestParam(required = false) String address,
+            @RequestParam(required = false) String propertyId,
+            @RequestParam(required = false) String county) {
+
+        long start = System.currentTimeMillis();
+        Map<String, Object> result;
+        String searchType;
+        String input;
+
+        if (propertyId != null && county != null) {
+            searchType = "propertyId";
+            input = propertyId + " (" + county + ")";
+            String url = propertyAgentUrl + "/analyze-by-id";
+            @SuppressWarnings("unchecked")
+            Map<String, Object> r = restTemplate.postForObject(url,
+                    Map.of("propertyId", propertyId, "county", county), Map.class);
+            result = r;
+        } else {
+            searchType = "address";
+            input = address;
+            String url = propertyAgentUrl + "/analyze";
+            @SuppressWarnings("unchecked")
+            Map<String, Object> r = restTemplate.postForObject(url, Map.of("address", address), Map.class);
+            result = r;
+        }
+
+        saveScraperLog(result, searchType, input, (int)(System.currentTimeMillis() - start));
         return ResponseEntity.ok(result);
+    }
+
+    private void saveScraperLog(Map<String, Object> result, String searchType, String input, int durationMs) {
+        try {
+            ScraperLog log = new ScraperLog();
+            log.setTs(LocalDateTime.now());
+            log.setSearchType(searchType);
+            log.setInput(input);
+            log.setDurationMs(durationMs);
+
+            if (result != null) {
+                log.setCounty(str(result.get("county")));
+                log.setCity(str(result.get("city")));
+                log.setPropertyId(str(result.get("propertyId")));
+
+                @SuppressWarnings("unchecked")
+                List<Object> years = (List<Object>) result.get("years");
+                boolean success = years != null && !years.isEmpty();
+                log.setSuccess(success);
+
+                if (!success) {
+                    log.setErrorMsg(str(result.get("message")));
+                }
+            } else {
+                log.setSuccess(false);
+                log.setErrorMsg("No response from property agent");
+            }
+
+            scraperLogRepo.save(log);
+        } catch (Exception ignored) {}
+    }
+
+    private static String str(Object o) {
+        return o == null ? null : o.toString();
+    }
+
+    // ── Scraper monitoring ───────────────────────────────────────────────────
+
+    @GetMapping("/scraper-monitoring")
+    public ResponseEntity<ScraperMonitoringResponse> getScraperMonitoring() {
+        LocalDateTime since7d  = LocalDateTime.now().minusDays(7);
+        LocalDateTime since30d = LocalDateTime.now().minusDays(30);
+
+        List<ScraperLog> logs7d = scraperLogRepo.findSince(since7d);
+
+        ScraperMonitoringResponse.Stats stats = new ScraperMonitoringResponse.Stats();
+        stats.setTotal7d(logs7d.size());
+        long success7d = logs7d.stream().filter(ScraperLog::isSuccess).count();
+        stats.setSuccess7d(success7d);
+        stats.setErrors7d(logs7d.size() - success7d);
+        stats.setSuccessRate7d(logs7d.isEmpty() ? 0 : (double) success7d / logs7d.size());
+        stats.setAvgDurationMs7d(logs7d.isEmpty() ? 0 :
+                (long) logs7d.stream().mapToInt(ScraperLog::getDurationMs).average().orElse(0));
+
+        List<Object[]> countyRaw = scraperLogRepo.countyStatsSince(since30d);
+        List<ScraperMonitoringResponse.CountySummary> countySummary = new ArrayList<>();
+        for (Object[] row : countyRaw) {
+            ScraperMonitoringResponse.CountySummary cs = new ScraperMonitoringResponse.CountySummary();
+            cs.setCounty(row[0] == null ? "Unknown" : row[0].toString());
+            long total = ((Number) row[1]).longValue();
+            long successes = ((Number) row[2]).longValue();
+            cs.setTotal(total);
+            cs.setSuccessCount(successes);
+            cs.setSuccessRate(total == 0 ? 0 : (double) successes / total);
+            cs.setAvgDurationMs(row[3] == null ? 0 : ((Number) row[3]).longValue());
+            countySummary.add(cs);
+        }
+
+        List<ScraperLog> recent = scraperLogRepo.findTop100ByOrderByTsDesc();
+        List<ScraperLogResponse> recentLogs = recent.stream().map(l -> {
+            ScraperLogResponse r = new ScraperLogResponse();
+            r.setId(l.getId());
+            r.setTs(l.getTs());
+            r.setCounty(l.getCounty());
+            r.setCity(l.getCity());
+            r.setSearchType(l.getSearchType());
+            r.setInput(l.getInput());
+            r.setSuccess(l.isSuccess());
+            r.setDurationMs(l.getDurationMs());
+            r.setPropertyId(l.getPropertyId());
+            r.setErrorMsg(l.getErrorMsg());
+            return r;
+        }).toList();
+
+        ScraperMonitoringResponse response = new ScraperMonitoringResponse();
+        response.setStats(stats);
+        response.setCountySummary(countySummary);
+        response.setRecentLogs(recentLogs);
+        return ResponseEntity.ok(response);
     }
 
     // ── Admin MFA management ──────────────────────────────────────────────────

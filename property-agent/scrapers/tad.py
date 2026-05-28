@@ -40,6 +40,16 @@ class TADScraper(BaseCADScraper):
 
         return candidates
 
+    def get_owner_info(self, session, prop_id: str) -> dict:
+        try:
+            resp = session.get(f"{BASE}/property_detail.php",
+                               params={"PROP_ID": prop_id}, timeout=15)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "lxml")
+            return self._soup_owner_info(soup)
+        except Exception:
+            return {"ownerName": None, "mailingAddress": None}
+
     def _fetch_year(self, session, prop_id: str, year: int) -> dict | None:
         try:
             resp = session.get(

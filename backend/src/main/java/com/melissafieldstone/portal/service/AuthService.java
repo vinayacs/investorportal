@@ -21,6 +21,7 @@ public class AuthService {
     private final AdminUserRepository adminUserRepo;
     private final InvestorLoginLogRepository loginLogRepo;
     private final PasswordHistoryRepository passwordHistoryRepo;
+    private final TrustedDeviceRepository trustedDeviceRepo;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
@@ -42,6 +43,12 @@ public class AuthService {
                 throw new RuntimeException("Invalid credentials");
             }
             if (Boolean.TRUE.equals(cred.getMfaEnabled())) {
+                if (isTrustedDevice(request.getDeviceToken(), cred.getUsername())) {
+                    logAttempt(cred.getInvestor(), ip, "SUCCESS", null, "LOGIN");
+                    String token = jwtUtil.generateToken(cred.getUsername(), cred.getRole());
+                    Investor inv = cred.getInvestor();
+                    return new LoginResponse(token, cred.getRole(), inv.getFirstName(), inv.getLastName());
+                }
                 return mfaService.initiateMfaForInvestor(cred);
             }
             logAttempt(cred.getInvestor(), ip, "SUCCESS", null, "LOGIN");
@@ -59,6 +66,10 @@ public class AuthService {
                 throw new RuntimeException("Invalid credentials");
             }
             if (Boolean.TRUE.equals(admin.getMfaEnabled())) {
+                if (isTrustedDevice(request.getDeviceToken(), admin.getEmail())) {
+                    String token = jwtUtil.generateToken(admin.getEmail(), "ADMIN");
+                    return new LoginResponse(token, "ADMIN", admin.getName(), "");
+                }
                 return mfaService.initiateMfaForAdmin(admin);
             }
             String token = jwtUtil.generateToken(admin.getEmail(), "ADMIN");
@@ -163,6 +174,13 @@ public class AuthService {
         entry.setUserId(userId);
         entry.setPasswordHash(passwordHash);
         passwordHistoryRepo.save(entry);
+    }
+
+    private boolean isTrustedDevice(String deviceToken, String username) {
+        if (deviceToken == null || deviceToken.isBlank()) return false;
+        return trustedDeviceRepo.findByDeviceTokenAndUsername(deviceToken, username)
+                .map(d -> d.getExpiresAt().isAfter(java.time.LocalDateTime.now()))
+                .orElse(false);
     }
 
     private void logAttempt(Investor investor, String ip, String status, String reason, String action) {

@@ -78,6 +78,16 @@ class HCADScraper(BaseCADScraper):
             "taxableValue": taxable,
         }
 
+    def get_owner_info(self, session, account: str) -> dict:
+        params = {"taxyear": str(CURRENT_YEAR), "sPatternMatch": "A", "acct": account}
+        try:
+            resp = session.get(f"{BASE}/Real.asp", params=params, timeout=15)
+            resp.raise_for_status()
+            soup = BeautifulSoup(resp.text, "lxml")
+            return self._soup_owner_info(soup)
+        except Exception:
+            return {"ownerName": None, "mailingAddress": None}
+
     def _find_value(self, soup: BeautifulSoup, labels: list[str]) -> int | None:
         text = soup.get_text(" ", strip=True).lower()
         for label in labels:

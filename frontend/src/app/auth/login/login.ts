@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../shared/services/auth.service';
+import { InactivityService } from '../../shared/services/inactivity.service';
 
 @Component({
   selector: 'app-login',
@@ -19,6 +20,7 @@ export class LoginComponent {
 
   constructor(
     private authService: AuthService,
+    private inactivity: InactivityService,
     private router: Router,
     private cdr: ChangeDetectorRef
   ) {}
@@ -32,6 +34,7 @@ export class LoginComponent {
         if (res.mfaPending) {
           this.router.navigate(['/mfa-verify']);
         } else {
+          this.inactivity.start();
           this.router.navigate([res.role === 'ADMIN' ? '/admin' : '/dashboard']);
         }
         this.cdr.detectChanges();

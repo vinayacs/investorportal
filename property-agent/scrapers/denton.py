@@ -28,10 +28,20 @@ class DentonCADScraper(BaseCADScraper):
 
     def get_appraisal_history(self, address: str, county_info: dict) -> dict:
         county = county_info["county"]
-        street = extract_street(address)           # e.g. "2004 Autumn Trl"
+        street = extract_street(address)           # e.g. "2304 Pinehurst Dr"
         house_num = re.match(r"(\d+)", street)
         house_num = house_num.group(1) if house_num else ""
-        street_name = re.sub(r"^\d+\s*", "", street).strip()   # "Autumn Trl"
+        # Full street name without house number: "Pinehurst Dr"
+        street_name = re.sub(r"^\d+\s*", "", street).strip()
+        # Strip common street type suffixes for the CAD search so we get the
+        # broadest result set — "Pinehurst" finds all pages, "Pinehurst Dr"
+        # can miss properties that appear on later pages.
+        search_term = re.sub(
+            r"\s+\b(dr|st|ave|ln|blvd|ct|way|pl|cir|trl|pkwy|rd|fwy|hwy"
+            r"|drive|street|avenue|lane|boulevard|court|place|circle"
+            r"|trail|parkway|road|freeway|highway)\s*$",
+            "", street_name, flags=re.IGNORECASE
+        ).strip()
 
         # Try to extract the city from the full address for auto-disambiguation
         # e.g. "2004 Autumn Trl, Denton, TX 76210" → "denton"
@@ -55,15 +65,15 @@ class DentonCADScraper(BaseCADScraper):
                 )
                 page = ctx.new_page()
 
-                matches = self._collect_all_matches(page, street_name, house_num)
+                matches = self._collect_all_matches(page, search_term, house_num)
                 browser.close()
 
         except Exception as exc:
-            return self._not_found(county, address,
+            return self._not_found(county, address, input_city,
                 f"Denton CAD scraper error: {exc}")
 
         if not matches:
-            return self._not_found(county, address,
+            return self._not_found(county, address, input_city,
                 f"No property found matching '{street}' in Denton CAD.")
 
         # Auto-disambiguate if the input address contains a city
@@ -80,6 +90,7 @@ class DentonCADScraper(BaseCADScraper):
         # Exactly one match — fetch its Value History
         match = matches[0]
         prop_url = f"{PORTAL}/property-detail/{match['pid']}"
+        cad_city = match["city"].title()
 
         try:
             with sync_playwright() as pw:
@@ -96,18 +107,20 @@ class DentonCADScraper(BaseCADScraper):
                     viewport={"width": 1280, "height": 900},
                 )
                 page = ctx.new_page()
-                years = self._read_value_history(page, prop_url)
+                years, owner_info = self._read_value_history(page, prop_url)
                 browser.close()
         except Exception as exc:
-            return self._not_found(county, address,
+            return self._not_found(county, address, cad_city,
                 f"Denton CAD detail-page error: {exc}")
 
         if not years:
-            return self._not_found(county, address,
+            return self._not_found(county, address, cad_city,
                 "Property found but Value History could not be read.")
 
         return self._build_response(
-            county, address, match["pid"], match["address"], years, prop_url
+            county, address, cad_city,
+            match["pid"], match["address"], years, prop_url,
+            owner_info.get("ownerName"), owner_info.get("mailingAddress"),
         )
 
     # ------------------------------------------------------------------
@@ -182,7 +195,7 @@ class DentonCADScraper(BaseCADScraper):
     def _go_next_page(self, page) -> bool:
         """Click the Next Page button. Returns True if navigation happened."""
         try:
-            btn = page.query_selector("[aria-label='Next Page']")
+            btn = page.query_selector("[aria-label='Go to next page']")
             if btn is None:
                 return False
             if (btn.get_attribute("disabled") is not None
@@ -227,12 +240,12 @@ class DentonCADScraper(BaseCADScraper):
     # Step 2 — detail page Value History
     # ------------------------------------------------------------------
 
-    def _read_value_history(self, page, url: str) -> list[dict]:
+    def _read_value_history(self, page, url: str) -> tuple[list[dict], dict]:
         try:
             page.goto(url, timeout=30_000)
             page.wait_for_load_state("networkidle", timeout=20_000)
         except PWTimeout:
-            return []
+            return [], {}
 
         try:
             page.wait_for_selector("text=Value History", timeout=15_000)
@@ -242,7 +255,7 @@ class DentonCADScraper(BaseCADScraper):
         page.wait_for_timeout(2000)
 
         soup = BeautifulSoup(page.content(), "lxml")
-        return self._parse_value_history(soup)
+        return self._parse_value_history(soup), self._soup_owner_info(soup)
 
     # ------------------------------------------------------------------
     # Parse the Value History section
@@ -363,10 +376,13 @@ class DentonCADScraper(BaseCADScraper):
         return {
             "supported": True,
             "county": county,
+            "city": "",
             "address": address,
             "propertyId": None,
             "propertyAddress": None,
             "cadUrl": "",
+            "ownerName": None,
+            "mailingAddress": None,
             "years": [],
             "requiresCity": True,
             "choices": cities,
@@ -375,6 +391,38 @@ class DentonCADScraper(BaseCADScraper):
                 f"{', '.join(cities)}. Please specify the city."
             ),
         }
+
+    def get_appraisal_by_id(self, prop_id: str, county_info: dict) -> dict:
+        county = county_info["county"]
+        prop_url = f"{PORTAL}/property-detail/{prop_id}"
+        try:
+            with sync_playwright() as pw:
+                browser = pw.chromium.launch(
+                    headless=True,
+                    args=["--no-sandbox", "--disable-dev-shm-usage"],
+                )
+                ctx = browser.new_context(
+                    user_agent=(
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/124.0.0.0 Safari/537.36"
+                    ),
+                    viewport={"width": 1280, "height": 900},
+                )
+                page = ctx.new_page()
+                years, owner_info = self._read_value_history(page, prop_url)
+                browser.close()
+        except Exception as exc:
+            return self._not_found(county, "", "",
+                f"Denton CAD detail-page error: {exc}")
+
+        if not years:
+            return self._not_found(county, "", "",
+                f"No Value History found for property ID {prop_id} in Denton CAD.")
+
+        return self._build_response(county, "", "", prop_id, prop_id, years, prop_url,
+                                    owner_info.get("ownerName"),
+                                    owner_info.get("mailingAddress"))
 
     # Required by ABC
     def _search_candidates(self, session, street: str) -> list[dict]:

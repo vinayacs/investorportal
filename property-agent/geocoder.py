@@ -74,8 +74,16 @@ def geocode_address(address: str) -> dict | None:
             .strip()
         )
         if county:
+            nom_city = (
+                raw.get("city")
+                or raw.get("town")
+                or raw.get("village")
+                or raw.get("suburb")
+                or ""
+            ).title()
             return {
                 "county": county,
+                "city": nom_city,
                 "state": raw.get("state", "Texas"),
                 "display_name": location.address,
                 "lat": location.latitude,
@@ -89,6 +97,7 @@ def geocode_address(address: str) -> dict | None:
         if county:
             return {
                 "county": county,
+                "city": city.title(),
                 "state": "Texas",
                 "display_name": address,
                 "lat": None,

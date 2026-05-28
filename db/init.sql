@@ -92,6 +92,27 @@ CREATE TABLE IF NOT EXISTS password_history (
     created_at      TIMESTAMP    NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS trusted_devices (
+    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username        VARCHAR(255) NOT NULL,
+    device_token    VARCHAR(255) NOT NULL UNIQUE,
+    created_at      TIMESTAMP    NOT NULL,
+    expires_at      TIMESTAMP    NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS scraper_logs (
+    id              BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    ts              TIMESTAMP    NOT NULL,
+    county          VARCHAR(100),
+    city            VARCHAR(100),
+    search_type     VARCHAR(20)  NOT NULL,
+    input           VARCHAR(500),
+    success         BOOLEAN      NOT NULL,
+    duration_ms     INTEGER      NOT NULL,
+    property_id     VARCHAR(100),
+    error_msg       VARCHAR(1000)
+);
+
 -- Seed admin user (password: TestApp#38899)
 INSERT INTO admin_users (name, email, password_hash, is_active, created_at)
 VALUES ('Admin', 'vinaycse@gmail.com', '$2b$10$1NMz0JywJIrn.uPTS92Rd.mnQl1rkyUt93sf7eX5ffVuZOZ43vJXi', TRUE, NOW())

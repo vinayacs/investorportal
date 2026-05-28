@@ -13,6 +13,7 @@ public class LoginResponse {
     private boolean mfaPending;
     private String mfaToken;
     private String mfaType;
+    private String deviceToken; // returned after MFA verify when rememberDevice=true
 
     public LoginResponse(String token, String role, String firstName, String lastName) {
         this.token = token;
