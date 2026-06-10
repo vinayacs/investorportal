@@ -65,6 +65,63 @@ class BaseCADScraper(ABC):
 
         return score
 
+    @staticmethod
+    def _compute_projection(years: list[dict]) -> dict | None:
+        """
+        CAGR-based 3-year projection using appraisedValue trend.
+        Land/improvement split is preserved from the latest year's proportions.
+        Requires at least 2 years where the property had a structure (improvementValue > 0).
+        Years where improvementValue is 0/null are excluded — they represent vacant lots
+        or new construction years and would produce a misleading CAGR.
+        """
+        valid = sorted(
+            [
+                y for y in years
+                if y.get("appraisedValue") and y.get("improvementValue") != 0
+            ],
+            key=lambda y: y["year"],
+        )
+        if len(valid) < 2:
+            return None
+
+        earliest, latest = valid[0], valid[-1]
+        period = latest["year"] - earliest["year"]
+        if period == 0:
+            return None
+
+        v_start = earliest["appraisedValue"]
+        v_end = latest["appraisedValue"]
+        if v_start <= 0 or v_end <= 0:
+            return None
+
+        cagr = (v_end / v_start) ** (1 / period) - 1
+
+        land_pct = (
+            latest["landValue"] / v_end
+            if latest.get("landValue") else None
+        )
+        impr_pct = (
+            latest["improvementValue"] / v_end
+            if latest.get("improvementValue") else None
+        )
+
+        projected = []
+        for k in range(1, 4):
+            proj_appraised = round(v_end * ((1 + cagr) ** k))
+            projected.append({
+                "year": latest["year"] + k,
+                "appraisedValue": proj_appraised,
+                "landValue": round(proj_appraised * land_pct) if land_pct is not None else None,
+                "improvementValue": round(proj_appraised * impr_pct) if impr_pct is not None else None,
+                "taxableValue": proj_appraised,
+            })
+
+        return {
+            "cagrPct": round(cagr * 100, 2),
+            "basedOnYears": [earliest["year"], latest["year"]],
+            "projectedYears": projected,
+        }
+
     def get_owner_info(self, session: requests.Session, prop_id: str) -> dict:
         """Override in subclasses to return ownerName and mailingAddress."""
         return {"ownerName": None, "mailingAddress": None}
@@ -296,6 +353,7 @@ class BaseCADScraper(ABC):
             "ownerName": owner_name,
             "mailingAddress": mailing_address,
             "years": years,
+            "projection": self._compute_projection(years),
         }
 
     def _not_found(self, county, address, city="", message="") -> dict:

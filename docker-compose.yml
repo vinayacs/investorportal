@@ -39,6 +39,8 @@ services:
   property-agent:
     build: ./property-agent
     restart: always
+    environment:
+      CENSUS_API_KEY: ${CENSUS_API_KEY:-}
     depends_on:
       - backend
 

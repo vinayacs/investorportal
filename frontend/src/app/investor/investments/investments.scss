@@ -1,5 +1,5 @@
 .layout { display: flex; min-height: 100vh; }
-.sidebar { width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+.sidebar { width: 220px; background: #106EBE; color: white; padding: 24px 16px; display: flex; flex-direction: column;
   .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
   ul { list-style: none; padding: 0; flex: 1;
     li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
@@ -7,7 +7,7 @@
   .logout-btn { background: transparent; border: 1px solid #cdd8e8; color: #cdd8e8; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; } }
 
 .content { flex: 1; padding: 32px; background: #f5f7fa;
-  h1 { color: #003366; margin: 0 0 24px; } }
+  h1 { color: #106EBE; margin: 0 0 24px; } }
 
 .loading { color: #666; font-size: 0.95rem; padding: 40px 0; text-align: center; }
 .empty-msg { color: #888; font-size: 0.95rem; }
@@ -21,7 +21,7 @@
   &:hover { background: #fafbfd; } }
 
 .card-title { display: flex; align-items: center; gap: 10px; flex: 1;
-  .inv-name { font-weight: 600; color: #003366; font-size: 1rem; } }
+  .inv-name { font-weight: 600; color: #106EBE; font-size: 1rem; } }
 
 .card-meta { display: flex; gap: 20px; font-size: 0.82rem; color: #888; }
 
@@ -35,9 +35,9 @@
 
 .progress-section { display: flex; flex-direction: column; gap: 6px; }
 .progress-label { display: flex; justify-content: space-between; font-size: 0.85rem; color: #555;
-  .progress-pct { font-weight: 600; color: #003366; } }
+  .progress-pct { font-weight: 600; color: #106EBE; } }
 .progress-track { height: 8px; background: #e8ecf0; border-radius: 4px; overflow: hidden; }
-.progress-fill { height: 100%; background: linear-gradient(90deg, #003366, #0066cc); border-radius: 4px; transition: width 0.4s ease; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #106EBE, #0066cc); border-radius: 4px; transition: width 0.4s ease; }
 
 .detail-section {
   h3 { font-size: 0.85rem; font-weight: 600; color: #004080; text-transform: uppercase; letter-spacing: 0.04em; margin: 0 0 8px; } }

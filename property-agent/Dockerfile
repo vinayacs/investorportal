@@ -1,12 +1,13 @@
 FROM python:3.12-slim
 
-# System deps for Playwright Chromium + Firefox
+# System deps for Playwright Firefox + Xvfb (virtual display for non-headless Firefox)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 \
     libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 \
     libgbm1 libasound2 libpangocairo-1.0-0 libgtk-3-0 libx11-xcb1 \
     wget ca-certificates fonts-liberation \
     libdbus-glib-1-2 libxt6 \
+    xvfb xauth \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -15,5 +16,8 @@ RUN pip install --no-cache-dir -r requirements.txt \
     && playwright install chromium firefox
 
 COPY . .
+RUN chmod +x start.sh
 EXPOSE 8000
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# start.sh starts Xvfb (virtual X11 display) then uvicorn.
+# Non-headless Firefox uses the display, bypassing Cloudflare headless detection.
+CMD ["./start.sh"]

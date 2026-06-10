@@ -1,22 +1,22 @@
 .page-container { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #f0f4f8; }
 .card { background: #fff; padding: 40px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); width: 100%; max-width: 440px;
-  h1 { color: #003366; font-size: 1.4rem; margin-bottom: 8px; } }
+  h1 { color: #106EBE; font-size: 1.4rem; margin-bottom: 8px; } }
 .hint { color: #555; font-size: 0.9rem; margin-bottom: 24px; }
 .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 8px; }
 .method-btn { display: flex; flex-direction: column; align-items: center; padding: 20px 12px; border: 2px solid #dde3ed; border-radius: 10px; background: #fff; cursor: pointer; transition: border-color 0.15s, background 0.15s;
-  &:hover:not(:disabled) { border-color: #003366; background: #f0f4f8; }
+  &:hover:not(:disabled) { border-color: #106EBE; background: #f0f4f8; }
   &:disabled { opacity: 0.5; cursor: default; }
   .method-icon { font-size: 1.6rem; margin-bottom: 6px; }
-  .method-label { font-weight: 600; font-size: 0.9rem; color: #003366; margin-bottom: 4px; }
+  .method-label { font-weight: 600; font-size: 0.9rem; color: #106EBE; margin-bottom: 4px; }
   .method-desc { font-size: 0.78rem; color: #777; text-align: center; } }
 .form-group { margin-bottom: 20px;
   label { display: block; font-size: 0.85rem; color: #444; margin-bottom: 4px; }
   input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 1.4rem; letter-spacing: 0.3em; text-align: center; box-sizing: border-box; } }
-button[type="submit"] { width: 100%; padding: 12px; background: #003366; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer;
+button[type="submit"] { width: 100%; padding: 12px; background: #106EBE; color: white; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer;
   &:disabled { opacity: 0.6; } &:hover:not(:disabled) { background: #004080; } }
-.secondary-btn { width: 100%; margin-top: 10px; padding: 10px; background: transparent; color: #003366; border: 1px solid #003366; border-radius: 6px; font-size: 0.9rem; cursor: pointer;
+.secondary-btn { width: 100%; margin-top: 10px; padding: 10px; background: transparent; color: #106EBE; border: 1px solid #106EBE; border-radius: 6px; font-size: 0.9rem; cursor: pointer;
   &:disabled { opacity: 0.5; } &:hover:not(:disabled) { background: #f0f4f8; } }
 .error-msg { color: #c0392b; font-size: 0.85rem; margin-bottom: 12px; background: #fdecea; padding: 10px 12px; border-radius: 6px; }
 .success-msg { background: #e8f5e9; color: #2e7d32; padding: 10px 12px; border-radius: 6px; font-size: 0.9rem; margin-bottom: 12px; }
 .back-link { display: block; text-align: center; margin-top: 20px; color: #666; font-size: 0.85rem; cursor: pointer;
-  &:hover { color: #003366; } }
+  &:hover { color: #106EBE; } }

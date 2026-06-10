@@ -1,41 +1,42 @@
 .layout { display: flex; min-height: 100vh; }
-.sidebar { width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+.sidebar { width: 220px; background: #106EBE; color: white; padding: 24px 16px; display: flex; flex-direction: column;
   .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
-  ul { list-style: none; padding: 0; flex: 1;
+  ul { list-style: none; padding: 0;
     li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
-      &:hover, &.active { background: #004080; color: white; } } }
-  .logout-btn { background: transparent; border: 1px solid #cdd8e8; color: #cdd8e8; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; } }
+      &:hover, &.active { background: #004080; color: white; } }
+    .sub-nav-item a { padding-left: 26px; font-size: 0.82rem; color: rgba(205,216,232,0.8); } }
+  .logout-btn { display: block; width: 100%; margin-top: 4px; background: transparent; border: 1px solid rgba(205,216,232,0.4); color: #cdd8e8; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; text-align: left; &:hover { background: #004080; color: white; border-color: transparent; } } }
 
 .content { flex: 1; padding: 32px; background: #f5f7fa;
-  h1 { color: #003366; margin: 0 0 6px; }
+  h1 { color: #106EBE; margin: 0 0 6px; }
   .subtitle { color: #666; font-size: 0.9rem; margin: 0 0 24px; } }
 
 .error-msg { background: #fdecea; color: #c0392b; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
 
 .loading-card { display: flex; align-items: center; gap: 14px; background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   p { margin: 0; color: #555; font-size: 0.9rem; } }
-.spinner { width: 22px; height: 22px; border: 3px solid #e0e0e0; border-top-color: #003366; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+.spinner { width: 22px; height: 22px; border: 3px solid #e0e0e0; border-top-color: #106EBE; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
 .stat-card { background: white; border-radius: 8px; padding: 20px 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   .stat-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #999; margin-bottom: 8px; }
-  .stat-value { font-size: 1.8rem; font-weight: 700; color: #003366;
+  .stat-value { font-size: 1.8rem; font-weight: 700; color: #106EBE;
     &.good { color: #2e7d32; }
     &.warn { color: #e65100; }
     &.bad  { color: #c0392b; } } }
 
-.section-title { font-size: 0.9rem; font-weight: 600; color: #003366; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
+.section-title { font-size: 0.9rem; font-weight: 600; color: #106EBE; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px; }
 
 .table-wrap { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: auto; margin-bottom: 8px; }
 
 table { width: 100%; border-collapse: collapse;
-  th { background: #003366; color: white; padding: 10px 14px; text-align: left; font-size: 0.8rem; white-space: nowrap; }
+  th { background: #106EBE; color: white; padding: 10px 14px; text-align: left; font-size: 0.8rem; white-space: nowrap; }
   td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; font-size: 0.85rem; color: #333; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #fafbff; } }
 
-.county-cell { font-weight: 600; color: #003366; }
+.county-cell { font-weight: 600; color: #106EBE; }
 
 .rate-badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;
   &.good { background: #e8f5e9; color: #2e7d32; }

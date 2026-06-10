@@ -1,19 +1,20 @@
 .layout { display: flex; min-height: 100vh; }
-.sidebar { width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+.sidebar { width: 220px; background: #106EBE; color: white; padding: 24px 16px; display: flex; flex-direction: column;
   .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
-  ul { list-style: none; padding: 0; flex: 1;
+  ul { list-style: none; padding: 0;
     li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
-      &:hover, &.active { background: #004080; color: white; } } }
-  .logout-btn { background: transparent; border: 1px solid #cdd8e8; color: #cdd8e8; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; } }
+      &:hover, &.active { background: #004080; color: white; } }
+    .sub-nav-item a { padding-left: 26px; font-size: 0.82rem; color: rgba(205,216,232,0.8); } }
+  .logout-btn { display: block; width: 100%; margin-top: 4px; background: transparent; border: 1px solid rgba(205,216,232,0.4); color: #cdd8e8; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; text-align: left; &:hover { background: #004080; color: white; border-color: transparent; } } }
 .content { flex: 1; padding: 32px; background: #f5f7fa; }
 .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
-  h1 { color: #003366; margin: 0; } }
-.add-btn { background: #003366; color: white; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; }
+  h1 { color: #106EBE; margin: 0; } }
+.add-btn { background: #106EBE; color: white; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-size: 0.9rem; }
 .table-wrap { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: auto; }
 table { width: 100%; border-collapse: collapse;
-  th { background: #003366; color: white; padding: 10px 14px; text-align: left; font-size: 0.85rem; }
+  th { background: #106EBE; color: white; padding: 10px 14px; text-align: left; font-size: 0.85rem; }
   td { padding: 10px 14px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #f4f8ff; } }
-.action-link { color: #003366; text-decoration: none; margin-right: 12px; font-size: 0.85rem; }
+.action-link { color: #106EBE; text-decoration: none; margin-right: 12px; font-size: 0.85rem; }
 .deactivate-btn { background: transparent; border: none; color: #c0392b; cursor: pointer; font-size: 0.85rem; }

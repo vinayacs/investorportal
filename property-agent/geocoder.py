@@ -88,21 +88,61 @@ def geocode_address(address: str) -> dict | None:
                 "display_name": location.address,
                 "lat": location.latitude,
                 "lon": location.longitude,
+                "zip": raw.get("postcode", ""),
             }
 
-    # Fallback: extract city name from address and look up county
+    # Fallback 1: static city→county map
     city = _extract_city(address)
     if city:
         county = CITY_TO_COUNTY.get(city.lower())
         if county:
+            # Try to get city-center coordinates so neighborhood signals still work
+            try:
+                city_loc = _geolocator.geocode(
+                    f"{city}, Texas", addressdetails=True, country_codes="us"
+                )
+            except (GeocoderTimedOut, GeocoderServiceError):
+                city_loc = None
+            city_lat = city_loc.latitude if city_loc else None
+            city_lon = city_loc.longitude if city_loc else None
+            city_zip = city_loc.raw.get("address", {}).get("postcode", "") if city_loc else ""
             return {
                 "county": county,
                 "city": city.title(),
                 "state": "Texas",
                 "display_name": address,
-                "lat": None,
-                "lon": None,
+                "lat": city_lat,
+                "lon": city_lon,
+                "zip": city_zip,
             }
+
+        # Fallback 2: Nominatim city-level lookup — handles small towns not in the map
+        # (rural addresses often fail street-level geocoding even when the city is known)
+        try:
+            city_loc = _geolocator.geocode(
+                f"{city}, Texas", addressdetails=True, country_codes="us"
+            )
+        except (GeocoderTimedOut, GeocoderServiceError):
+            city_loc = None
+
+        if city_loc:
+            raw = city_loc.raw.get("address", {})
+            county = (
+                raw.get("county", "")
+                .replace(" County", "")
+                .replace(" CAD", "")
+                .strip()
+            )
+            if county:
+                return {
+                    "county": county,
+                    "city": city.title(),
+                    "state": raw.get("state", "Texas"),
+                    "display_name": city_loc.address,
+                    "lat": city_loc.latitude,
+                    "lon": city_loc.longitude,
+                    "zip": raw.get("postcode", ""),
+                }
 
     return None
 

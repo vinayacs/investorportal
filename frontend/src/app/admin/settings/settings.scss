@@ -1,23 +1,24 @@
 .layout { display: flex; min-height: 100vh; }
 .sidebar {
-  width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+  width: 220px; background: #106EBE; color: white; padding: 24px 16px; display: flex; flex-direction: column;
   .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
-  ul { list-style: none; padding: 0; flex: 1;
+  ul { list-style: none; padding: 0;
     li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
-      &:hover, &.active { background: #004080; color: white; } } }
+      &:hover, &.active { background: #004080; color: white; } }
+    .sub-nav-item a { padding-left: 26px; font-size: 0.82rem; color: rgba(205,216,232,0.8); } }
   .logout-btn { background: transparent; border: 1px solid #cdd8e8; color: #cdd8e8; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;
     &:hover { background: #c0392b; border-color: #c0392b; color: white; } }
 }
 .content { flex: 1; padding: 32px; background: #f5f7fa;
-  h1 { color: #003366; margin-bottom: 24px; } }
+  h1 { color: #106EBE; margin-bottom: 24px; } }
 .section { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); max-width: 480px;
   h2 { color: #004080; font-size: 1rem; margin: 0 0 20px; } }
 .pw-form { display: flex; flex-direction: column; gap: 16px; }
 .field { display: flex; flex-direction: column; gap: 6px;
   label { font-size: 0.78rem; color: #888; text-transform: uppercase; }
   input { padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem;
-    &:focus { outline: none; border-color: #003366; } } }
-.save-btn { background: #003366; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; width: fit-content;
+    &:focus { outline: none; border-color: #106EBE; } } }
+.save-btn { background: #106EBE; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; width: fit-content;
   &:hover { background: #004080; } }
 .success-msg { background: #e8f5e9; color: #2e7d32; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
 .error-msg { background: #fdecea; color: #c0392b; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
@@ -27,7 +28,7 @@
 .mfa-method-name { font-size: 0.9rem; font-weight: 600; color: #333; }
 .mfa-method-desc { font-size: 0.78rem; color: #888; }
 .mfa-method-actions { display: flex; align-items: center; gap: 10px; }
-.save-btn-sm { background: #003366; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem;
+.save-btn-sm { background: #106EBE; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem;
   &:hover { background: #004080; } }
 .danger-btn-sm { background: #c0392b; color: white; border: none; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.82rem;
   &:hover { background: #a93226; } }

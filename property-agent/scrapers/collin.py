@@ -2,8 +2,8 @@
 Collin Central Appraisal District (CollinCAD)
 Portal: https://esearch.collincad.org
 
-Uses Firefox via Playwright — Cloudflare Bot Management on this portal blocks
-headless Chromium but passes Firefox without issue.
+Uses non-headless Chromium via Playwright with Xvfb virtual display to bypass
+Cloudflare Bot Management on this portal.
 
 Flow (single browser session):
   1. Load home page (passes Cloudflare), move mouse (satisfies hasMovedMouse).
@@ -15,9 +15,51 @@ Flow (single browser session):
      Cloudflare cookies) and parse the "Property Roll Value History" table.
 """
 import re
+from urllib.parse import quote_plus
 from playwright.sync_api import sync_playwright, TimeoutError as PWTimeout
 from bs4 import BeautifulSoup
 from .base import BaseCADScraper, extract_street
+
+# Minimal stealth script injected before every page load.
+# Hides the most common Playwright/headless Chromium signals that Cloudflare checks.
+_STEALTH_JS = """
+// Hide automation markers
+Object.defineProperty(navigator, 'webdriver', {get: () => undefined});
+
+// Realistic plugin list
+Object.defineProperty(navigator, 'plugins', {get: () => [
+    {name:'Chrome PDF Plugin',filename:'internal-pdf-viewer',description:'Portable Document Format'},
+    {name:'Chrome PDF Viewer',filename:'mhjfbmdgcfjbbpaeojofohoefgiehjai',description:''},
+    {name:'Native Client',filename:'internal-nacl-plugin',description:''},
+]});
+
+// Language / locale
+Object.defineProperty(navigator, 'languages', {get: () => ['en-US','en']});
+
+// Hardware signals (8-core, 8 GB — common laptop profile)
+Object.defineProperty(navigator, 'hardwareConcurrency', {get: () => 8});
+Object.defineProperty(navigator, 'deviceMemory', {get: () => 8});
+
+// Chrome runtime shim
+window.chrome = {runtime:{}, loadTimes:function(){}, csi:function(){}, app:{}};
+
+// Spoof WebGL renderer so it looks like a real Intel iGPU instead of Mesa/llvmpipe
+(function() {
+    const origGetContext = HTMLCanvasElement.prototype.getContext;
+    HTMLCanvasElement.prototype.getContext = function(type) {
+        const ctx = origGetContext.apply(this, arguments);
+        if (ctx && (type === 'webgl' || type === 'experimental-webgl' || type === 'webgl2')) {
+            const origGetParam = ctx.getParameter.bind(ctx);
+            ctx.getParameter = function(param) {
+                if (param === 37445) return 'Intel Inc.';
+                if (param === 37446) return 'Intel(R) Iris(TM) Plus Graphics 640';
+                return origGetParam(param);
+            };
+        }
+        return ctx;
+    };
+})();
+"""
 
 PORTAL = "https://esearch.collincad.org"
 
@@ -25,6 +67,7 @@ PORTAL = "https://esearch.collincad.org"
 class CollinCADScraper(BaseCADScraper):
 
     def get_appraisal_history(self, address: str, county_info: dict) -> dict:
+        print(f"[CollinCAD] get_appraisal_history: address={address!r}", flush=True)
         county = county_info["county"]
         street = extract_street(address)
         house_num = re.match(r"(\d+)", street)
@@ -38,59 +81,121 @@ class CollinCADScraper(BaseCADScraper):
         ).strip()
         input_city = self._extract_city(address)
 
-        try:
-            with sync_playwright() as pw:
-                browser = pw.firefox.launch(
-                    headless=True,
-                    firefox_user_prefs={
-                        'dom.webdriver.enabled': False,
-                        'useAutomationExtension': False,
-                        'privacy.resistFingerprinting': False,
-                    }
-                )
-                ctx = browser.new_context(
-                    user_agent=(
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) "
-                        "Gecko/20100101 Firefox/125.0"
-                    ),
-                    viewport={"width": 1920, "height": 1080},
-                    locale='en-US',
-                    timezone_id='America/Chicago',
-                )
-                page = ctx.new_page()
-                page.add_init_script(
-                    'Object.defineProperty(navigator, "webdriver", {get: () => undefined})'
-                )
-                page.on("dialog", lambda d: d.accept())
+        last_exc = None
+        matches = []
+        years, owner_info, match = [], {}, None
 
-                # Step 1: search (uses the Cloudflare session warmed up on home page)
-                matches = self._search(page, house_num, search_name)
+        for attempt in range(1, 4):  # up to 3 attempts to get past Cloudflare
+            try:
+                with sync_playwright() as pw:
+                    # Use Chromium non-headless — it has stronger anti-detection support
+                    # than Firefox and Cloudflare has more "trusted" Chromium data.
+                    browser = pw.chromium.launch(
+                        headless=False,
+                        args=[
+                            '--no-sandbox',
+                            '--disable-blink-features=AutomationControlled',
+                            '--disable-infobars',
+                            '--window-size=1920,1080',
+                        ]
+                    )
+                    ctx = browser.new_context(
+                        user_agent=(
+                            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                            "AppleWebKit/537.36 (KHTML, like Gecko) "
+                            "Chrome/124.0.0.0 Safari/537.36"
+                        ),
+                        viewport={"width": 1920, "height": 1080},
+                        locale='en-US',
+                        timezone_id='America/Chicago',
+                    )
+                    page = ctx.new_page()
+                    page.add_init_script(_STEALTH_JS)
+                    page.on("dialog", lambda d: d.accept())
 
-                if not matches:
+                    print(f"[CollinCAD] Attempt {attempt}/3", flush=True)
+                    matches = self._search(page, house_num, search_name)
                     browser.close()
+
+                    # None means Cloudflare blocked — no point retrying.
+                    if matches is None:
+                        return {
+                            "supported": True,
+                            "county": county,
+                            "city": input_city or "",
+                            "address": address,
+                            "propertyId": None,
+                            "propertyAddress": None,
+                            "cadUrl": PORTAL,
+                            "ownerName": None,
+                            "mailingAddress": None,
+                            "years": [],
+                            "message": (
+                                "Collin County's property portal is temporarily blocking "
+                                "automated access (Cloudflare). Please search directly at "
+                                "esearch.collincad.org or try again in a few hours."
+                            ),
+                        }
+
+                    if not matches:
+                        if attempt < 3:
+                            print(f"[CollinCAD] No matches, retrying...", flush=True)
+                            continue
+                        return self._not_found(county, address, input_city,
+                            f"No property found matching '{street}' in Collin CAD.")
+
+                    if input_city and len(matches) > 1:
+                        filtered = [m for m in matches if input_city in m["city"].lower()]
+                        if filtered:
+                            matches = filtered
+
+                    if len(matches) > 1:
+                        cities = sorted({m["city"] for m in matches})
+                        return self._ambiguous_response(county, address, cities)
+
+                    match = matches[0]
+                    prop_url = (f"{PORTAL}/Property/View/{match['pid']}"
+                                f"?ownerId={match['oid']}")
+                    # Open a fresh browser session for the detail page.
+                    with sync_playwright() as pw2:
+                        br2 = pw2.chromium.launch(
+                            headless=False,
+                            args=[
+                                '--no-sandbox',
+                                '--disable-blink-features=AutomationControlled',
+                                '--disable-infobars',
+                                '--window-size=1920,1080',
+                            ]
+                        )
+                        c2 = br2.new_context(
+                            user_agent=(
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                "Chrome/124.0.0.0 Safari/537.36"
+                            ),
+                            viewport={"width": 1920, "height": 1080},
+                            locale='en-US',
+                            timezone_id='America/Chicago',
+                        )
+                        p2 = c2.new_page()
+                        p2.add_init_script(_STEALTH_JS)
+                        p2.on("dialog", lambda d: d.accept())
+                        years, owner_info = self._warm_and_read_detail(p2, prop_url)
+                        br2.close()
+                    break  # success
+
+            except Exception as exc:
+                import traceback
+                last_exc = exc
+                print(f"[CollinCAD] Attempt {attempt} EXCEPTION: {exc}\n"
+                      f"{traceback.format_exc()}", flush=True)
+                if attempt == 3:
                     return self._not_found(county, address, input_city,
-                        f"No property found matching '{street}' in Collin CAD.")
+                        f"Collin CAD scraper error: {exc}")
 
-                if input_city and len(matches) > 1:
-                    filtered = [m for m in matches if input_city in m["city"].lower()]
-                    if filtered:
-                        matches = filtered
-
-                if len(matches) > 1:
-                    browser.close()
-                    cities = sorted({m["city"] for m in matches})
-                    return self._ambiguous_response(county, address, cities)
-
-                # Step 2: detail page in the SAME browser session — no re-auth needed
-                match = matches[0]
-                prop_url = (f"{PORTAL}/Property/View/{match['pid']}"
-                            f"?ownerId={match['oid']}")
-                years, owner_info = self._read_detail(page, prop_url)
-                browser.close()
-
-        except Exception as exc:
+        if not match:
             return self._not_found(county, address, input_city,
-                f"Collin CAD scraper error: {exc}")
+                f"No property found matching '{street}' in Collin CAD.")
 
         cad_city = self._title_city(match["address"])
 
@@ -109,60 +214,158 @@ class CollinCADScraper(BaseCADScraper):
     # ------------------------------------------------------------------
 
     def _search(self, page, house_num: str, search_name: str) -> list[dict]:
-        # Load home page so Cloudflare sets cookies
+        print(f"[CollinCAD] _search: house_num={house_num!r} search_name={search_name!r}", flush=True)
+
+        # Load home page and wait for Cloudflare challenge to clear.
         try:
             page.goto(PORTAL, timeout=40000)
-            page.wait_for_load_state("networkidle", timeout=30000)
+            page.wait_for_function(
+                "() => document.title !== 'Just a moment...' && document.title !== ''",
+                timeout=60000,
+            )
+            page.wait_for_selector('a:has-text("By Address")', timeout=30000)
         except PWTimeout:
+            print(f"[CollinCAD] TIMEOUT on home page. title={page.title()!r}", flush=True)
             return []
-        page.wait_for_timeout(2000)
+        print(f"[CollinCAD] Home page ready. title={page.title()!r}", flush=True)
+        # Log whether cf_clearance cookie was set (key diagnostic for Cloudflare bypass).
+        cf_cookies = [c['name'] for c in page.context.cookies() if 'cf' in c['name'].lower()]
+        print(f"[CollinCAD] CF cookies after home page: {cf_cookies}", flush=True)
 
-        # Move mouse so the site's hasMovedMouse check passes
-        page.mouse.move(300, 300)
-        page.mouse.move(500, 400)
-        page.wait_for_timeout(600)
+        # Extended human-like behaviour — gives Cloudflare time to build session trust.
+        for x, y in [(300, 300), (700, 400), (500, 500), (400, 250), (600, 350), (350, 450)]:
+            page.mouse.move(x, y)
+            page.wait_for_timeout(400)
+        page.evaluate("window.scrollBy(0, 300)")
+        page.wait_for_timeout(1200)
+        page.evaluate("window.scrollBy(0, -150)")
+        page.wait_for_timeout(1000)
 
-        # Click "By Address" tab
+        # Primary approach: click the "By Address" tab, fill #StreetNumber + #StreetName,
+        # then submit. The page is Blazor Server (not Angular/Angular form) — standard
+        # Playwright click + pressSequentially fires the Blazor event handlers correctly.
+        # #keywords (Quick Search) is in a hidden tab; By Address is the cleaner path.
+        form_succeeded = False
+
         try:
-            page.locator('a:has-text("By Address")').first.click()
-            page.wait_for_timeout(800)
-        except Exception:
-            return []
+            # Click the "By Address" tab to show the address search fields.
+            by_addr_tab = page.locator('a:has-text("By Address")').first
+            by_addr_tab.click(timeout=10000)
+            print(f"[CollinCAD] Clicked 'By Address' tab", flush=True)
+            page.wait_for_timeout(600)
 
-        # Fill street number and name only
-        page.fill("#StreetNumber", house_num)
-        page.fill("#StreetName", search_name)
-        page.wait_for_timeout(400)
+            # Wait for #StreetNumber to become visible (Blazor re-renders).
+            page.wait_for_selector('#StreetNumber', state='visible', timeout=10000)
 
-        # Click Search button
-        clicked = False
-        for btn in page.query_selector_all("button"):
-            if btn.is_visible() and btn.inner_text().strip() == "Search":
-                btn.click()
-                clicked = True
-                break
-        if not clicked:
-            return []
+            sn_loc = page.locator('#StreetNumber')
+            sn_loc.click()
+            page.wait_for_timeout(100)
+            sn_loc.pressSequentially(house_num, delay=60)
+            print(f"[CollinCAD] Filled #StreetNumber: {house_num!r}", flush=True)
 
-        # Wait for navigation to search results
+            page.wait_for_timeout(200)
+
+            name_loc = page.locator('#StreetName')
+            name_loc.click()
+            page.wait_for_timeout(100)
+            name_loc.pressSequentially(search_name, delay=60)
+            print(f"[CollinCAD] Filled #StreetName: {search_name!r}", flush=True)
+            page.wait_for_timeout(400)
+
+            # Press Enter on StreetName to trigger Blazor search.
+            name_loc.press('Enter')
+
+            try:
+                page.wait_for_url("**/search/result**", timeout=20000)
+                page.wait_for_timeout(2000)
+                title = page.title()
+                if "just a moment" not in title.lower():
+                    print(f"[CollinCAD] Form nav succeeded (Enter). URL={page.url} title={title!r}", flush=True)
+                    form_succeeded = True
+                else:
+                    print(f"[CollinCAD] Form nav landed on Cloudflare. title={title!r}", flush=True)
+                    return None
+            except PWTimeout:
+                print(f"[CollinCAD] Enter nav timeout. URL={page.url}", flush=True)
+
+            # If Enter didn't navigate, try the Search submit button.
+            if not form_succeeded:
+                try:
+                    btn = page.locator(
+                        'button[type="submit"], input[type="submit"], '
+                        'button:has-text("Search"), .btn-search, #btnSearch'
+                    ).first
+                    btn.click(timeout=5000)
+                    print(f"[CollinCAD] Clicked search submit button", flush=True)
+                    try:
+                        page.wait_for_url("**/search/result**", timeout=20000)
+                        page.wait_for_timeout(2000)
+                        title = page.title()
+                        if "just a moment" not in title.lower():
+                            print(f"[CollinCAD] Form nav succeeded (button). URL={page.url}", flush=True)
+                            form_succeeded = True
+                        else:
+                            print(f"[CollinCAD] Button nav landed on Cloudflare.", flush=True)
+                            return None
+                    except PWTimeout:
+                        print(f"[CollinCAD] Button nav timeout. URL={page.url}", flush=True)
+                except Exception as e:
+                    print(f"[CollinCAD] Submit button click failed: {e}", flush=True)
+
+        except Exception as exc:
+            print(f"[CollinCAD] By Address form interaction error: {exc}", flush=True)
+
+        if form_succeeded:
+            return self._parse_results(page, house_num)
+
+        # Fallback: page.goto() (sends proper Referer/cookie headers, avoids the
+        # race where wait_for_function fires on the old page title during JS navigation).
+        keywords = quote_plus(f"{house_num} {search_name}")
+        search_url = f"{PORTAL}/search/result?keywords={keywords}"
+        print(f"[CollinCAD] goto fallback: {search_url}", flush=True)
+
+        # Try JS-initiated navigation first — keeps same execution context/cookies.
         try:
-            page.wait_for_url("**/search/result**", timeout=30000)
+            page.evaluate(f"() => {{ window.location.href = {repr(search_url)}; }}")
+            page.wait_for_url("**/search/result**", timeout=40000)
         except PWTimeout:
-            return []
-        page.wait_for_timeout(2000)
+            print(f"[CollinCAD] JS nav timeout, trying page.goto", flush=True)
+            try:
+                page.goto(search_url, timeout=40000, wait_until='domcontentloaded')
+            except PWTimeout:
+                print(f"[CollinCAD] goto timeout", flush=True)
 
+        # Cloudflare challenge can take up to 60s on rate-limited paths.
+        try:
+            page.wait_for_function(
+                "() => document.title !== 'Just a moment...' && document.title !== ''",
+                timeout=60000,
+            )
+        except PWTimeout:
+            pass
+
+        page.wait_for_timeout(1500)
+        final_title = page.title()
+        if "just a moment" in final_title.lower():
+            print(f"[CollinCAD] Cloudflare blocking search results. title={final_title!r}", flush=True)
+            return None  # Signal to caller: Cloudflare blocked, stop retrying.
+
+        print(f"[CollinCAD] Search results loaded. URL={page.url} title={final_title!r}", flush=True)
         return self._parse_results(page, house_num)
 
     def _parse_results(self, page, house_num: str) -> list[dict]:
         soup = BeautifulSoup(page.content(), "lxml")
         results = []
 
-        # Each matching row has onclick="redirectToPropertyDetails('PID','YEAR','OID',...)"
         pattern = re.compile(
             r"redirectToPropertyDetails\('(\d+)','(\d+)','(\d+)'", re.IGNORECASE
         )
+        all_els = soup.find_all(onclick=pattern)
+        print(f"[CollinCAD] _parse_results: house_num={house_num!r}, "
+              f"elements_with_onclick={len(all_els)}", flush=True)
+
         seen = set()
-        for el in soup.find_all(onclick=pattern):
+        for el in all_els:
             m = pattern.search(el.get("onclick", ""))
             if not m:
                 continue
@@ -171,20 +374,26 @@ class CollinCADScraper(BaseCADScraper):
                 continue
             seen.add(pid)
 
-            row = el.find_parent("tr") or el.find_parent("li") or el.parent
+            if el.name == "tr":
+                row = el
+            else:
+                row = el.find_parent("tr") or el.find_parent("li") or el.parent
             row_text = row.get_text(" ", strip=True) if row else el.get_text(strip=True)
 
-            if house_num and not re.search(
-                    r"\b" + re.escape(house_num) + r"\b", row_text):
+            house_match = not house_num or bool(re.search(
+                r"\b" + re.escape(house_num) + r"\b", row_text))
+            print(f"[CollinCAD]   pid={pid} tag={el.name} "
+                  f"house_match={house_match} "
+                  f"row_text={row_text[:120]!r}", flush=True)
+
+            if not house_match:
                 continue
 
-            # Extract city from situs address (e.g. "5754 ALPENROSE AVE, FRISCO TX 75035")
             city = ""
             city_m = re.search(r",\s*([A-Z][A-Z ]+)\s+TX\b", row_text)
             if city_m:
                 city = city_m.group(1).strip().title()
 
-            # Extract situs address anchored to the house number
             addr_m = re.search(
                 re.escape(house_num) + r"\s+\S.*?TX\s+\d{5}",
                 row_text, re.IGNORECASE
@@ -196,6 +405,7 @@ class CollinCADScraper(BaseCADScraper):
                 "address": situs, "city": city,
             })
 
+        print(f"[CollinCAD] _parse_results returning {len(results)} match(es)", flush=True)
         return results
 
     # ------------------------------------------------------------------
@@ -229,10 +439,14 @@ class CollinCADScraper(BaseCADScraper):
         with a cold browser session."""
         try:
             page.goto(PORTAL, timeout=40000)
-            page.wait_for_load_state("networkidle", timeout=30000)
+            page.wait_for_function(
+                "() => document.title !== 'Just a moment...' && document.title !== ''",
+                timeout=60000,
+            )
+            page.wait_for_selector('a:has-text("By Address")', timeout=30000)
         except PWTimeout:
             pass
-        page.wait_for_timeout(1500)
+        page.wait_for_timeout(800)
         page.mouse.move(400, 300)
         page.wait_for_timeout(300)
         return self._read_detail(page, url)
@@ -353,27 +567,27 @@ class CollinCADScraper(BaseCADScraper):
         prop_url = f"{PORTAL}/Property/View/{prop_id}"
         try:
             with sync_playwright() as pw:
-                browser = pw.firefox.launch(
-                    headless=True,
-                    firefox_user_prefs={
-                        'dom.webdriver.enabled': False,
-                        'useAutomationExtension': False,
-                        'privacy.resistFingerprinting': False,
-                    }
+                browser = pw.chromium.launch(
+                    headless=False,
+                    args=[
+                        '--no-sandbox',
+                        '--disable-blink-features=AutomationControlled',
+                        '--disable-infobars',
+                        '--window-size=1920,1080',
+                    ]
                 )
                 ctx = browser.new_context(
                     user_agent=(
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) "
-                        "Gecko/20100101 Firefox/125.0"
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/124.0.0.0 Safari/537.36"
                     ),
                     viewport={"width": 1920, "height": 1080},
                     locale='en-US',
                     timezone_id='America/Chicago',
                 )
                 page = ctx.new_page()
-                page.add_init_script(
-                    'Object.defineProperty(navigator, "webdriver", {get: () => undefined})'
-                )
+                page.add_init_script(_STEALTH_JS)
                 page.on("dialog", lambda d: d.accept())
                 years, owner_info = self._warm_and_read_detail(page, prop_url)
                 browser.close()

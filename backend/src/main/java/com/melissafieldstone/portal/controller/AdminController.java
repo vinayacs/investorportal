@@ -7,6 +7,7 @@ import com.melissafieldstone.portal.service.AdminService;
 import com.melissafieldstone.portal.service.AuthService;
 import com.melissafieldstone.portal.service.InvestmentService;
 import com.melissafieldstone.portal.service.MfaService;
+import com.melissafieldstone.portal.service.PropertyAnalysisCacheService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -31,6 +33,7 @@ public class AdminController {
     private final AuthService authService;
     private final RestTemplate restTemplate;
     private final ScraperLogRepository scraperLogRepo;
+    private final PropertyAnalysisCacheService cacheService;
 
     @Value("${app.property-agent-url:http://property-agent:8000}")
     private String propertyAgentUrl;
@@ -135,24 +138,39 @@ public class AdminController {
     public ResponseEntity<Map<String, Object>> analyzeProperty(
             @RequestParam(required = false) String address,
             @RequestParam(required = false) String propertyId,
-            @RequestParam(required = false) String county) {
+            @RequestParam(required = false) String county,
+            @RequestParam(required = false, defaultValue = "false") boolean refresh) {
+
+        boolean byId = propertyId != null && county != null;
+        String cacheKey = byId
+                ? PropertyAnalysisCacheService.buildPropertyIdKey(county, propertyId)
+                : PropertyAnalysisCacheService.buildAddressKey(address != null ? address : "");
+        String searchType = byId ? "propertyId" : "address";
+        String input = byId ? propertyId + " (" + county + ")" : address;
+
+        // Evict stale entry when caller requests a refresh
+        if (refresh) cacheService.evict(cacheKey);
+
+        // Return cached result if available (and not refreshing)
+        if (!refresh) {
+            Optional<Map<String, Object>> cached = cacheService.get(cacheKey);
+            if (cached.isPresent()) {
+                Map<String, Object> hit = new java.util.HashMap<>(cached.get());
+                hit.put("_fromCache", true);
+                return ResponseEntity.ok(hit);
+            }
+        }
 
         long start = System.currentTimeMillis();
         Map<String, Object> result;
-        String searchType;
-        String input;
 
-        if (propertyId != null && county != null) {
-            searchType = "propertyId";
-            input = propertyId + " (" + county + ")";
+        if (byId) {
             String url = propertyAgentUrl + "/analyze-by-id";
             @SuppressWarnings("unchecked")
             Map<String, Object> r = restTemplate.postForObject(url,
                     Map.of("propertyId", propertyId, "county", county), Map.class);
             result = r;
         } else {
-            searchType = "address";
-            input = address;
             String url = propertyAgentUrl + "/analyze";
             @SuppressWarnings("unchecked")
             Map<String, Object> r = restTemplate.postForObject(url, Map.of("address", address), Map.class);
@@ -160,6 +178,7 @@ public class AdminController {
         }
 
         saveScraperLog(result, searchType, input, (int)(System.currentTimeMillis() - start));
+        cacheService.put(cacheKey, result, input, str(result != null ? result.get("county") : null));
         return ResponseEntity.ok(result);
     }
 

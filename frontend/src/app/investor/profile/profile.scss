@@ -1,6 +1,6 @@
 .layout { display: flex; min-height: 100vh; }
 .sidebar {
-  width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+  width: 220px; background: #106EBE; color: white; padding: 24px 16px; display: flex; flex-direction: column;
   .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
   ul { list-style: none; padding: 0; flex: 1;
     li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
@@ -9,8 +9,8 @@
 }
 .content { flex: 1; padding: 32px; background: #f5f7fa; }
 .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
-  h1 { color: #003366; margin: 0; } }
-.edit-btn { background: #003366; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
+  h1 { color: #106EBE; margin: 0; } }
+.edit-btn { background: #106EBE; color: white; border: none; padding: 8px 20px; border-radius: 6px; cursor: pointer; }
 .section { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 16px;
   h2 { color: #004080; font-size: 1rem; margin: 0 0 16px; } }
 .field-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }

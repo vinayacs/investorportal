@@ -1,46 +1,47 @@
 .layout { display: flex; min-height: 100vh; }
-.sidebar { width: 220px; background: #003366; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+.sidebar { width: 220px; background: #106EBE; color: white; padding: 24px 16px; display: flex; flex-direction: column;
   .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
-  ul { list-style: none; padding: 0; flex: 1;
+  ul { list-style: none; padding: 0;
     li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
-      &:hover, &.active { background: #004080; color: white; } } }
-  .logout-btn { background: transparent; border: 1px solid #cdd8e8; color: #cdd8e8; padding: 8px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; } }
+      &:hover, &.active { background: #004080; color: white; } }
+    .sub-nav-item a { padding-left: 26px; font-size: 0.82rem; color: rgba(205,216,232,0.8); } }
+  .logout-btn { display: block; width: 100%; margin-top: 4px; background: transparent; border: 1px solid rgba(205,216,232,0.4); color: #cdd8e8; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; text-align: left; &:hover { background: #004080; color: white; border-color: transparent; } } }
 .content { flex: 1; padding: 32px; background: #f5f7fa;
-  h1 { color: #003366; margin: 0 0 6px; }
+  h1 { color: #106EBE; margin: 0 0 6px; }
   .subtitle { color: #666; font-size: 0.9rem; margin: 0 0 24px; } }
 .error-msg { background: #fdecea; color: #c0392b; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
 
 .search-card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 24px; }
 .search-row { display: flex; gap: 12px; margin-bottom: 10px; align-items: center; }
 .search-type-select { padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; background: white; color: #333; cursor: pointer; white-space: nowrap;
-  &:focus { outline: none; border-color: #003366; } }
+  &:focus { outline: none; border-color: #106EBE; } }
 .county-select { padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; background: white; color: #333; cursor: pointer; white-space: nowrap;
-  &:focus { outline: none; border-color: #003366; } }
+  &:focus { outline: none; border-color: #106EBE; } }
 .address-input { flex: 1; padding: 10px 14px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.95rem;
-  &:focus { outline: none; border-color: #003366; } }
-.analyze-btn { background: #003366; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; white-space: nowrap;
+  &:focus { outline: none; border-color: #106EBE; } }
+.analyze-btn { background: #106EBE; color: white; border: none; padding: 10px 24px; border-radius: 6px; cursor: pointer; font-size: 0.95rem; white-space: nowrap;
   &:hover:not(:disabled) { background: #004080; }
   &:disabled { opacity: 0.55; cursor: default; } }
 .hint { font-size: 0.78rem; color: #999; margin: 0; }
 
 .loading-card { display: flex; align-items: center; gap: 14px; background: white; border-radius: 8px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.08);
   p { margin: 0; color: #555; font-size: 0.9rem; } }
-.spinner { width: 22px; height: 22px; border: 3px solid #e0e0e0; border-top-color: #003366; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+.spinner { width: 22px; height: 22px; border: 3px solid #e0e0e0; border-top-color: #106EBE; border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 .county-summary {
   display: flex; align-items: center; justify-content: space-between;
   background: white; border-radius: 8px; padding: 14px 20px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-bottom: 16px;
-  border-left: 4px solid #003366;
+  border-left: 4px solid #106EBE;
   .county-summary-left { display: flex; align-items: center; gap: 10px; }
   .county-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: #999; }
-  .county-name { font-size: 0.95rem; font-weight: 600; color: #003366;
+  .county-name { font-size: 0.95rem; font-weight: 600; color: #106EBE;
     .city-name { font-weight: 400; color: #555; } }
   .county-summary-right { display: flex; align-items: center; gap: 10px; }
-  .county-portal-link { font-size: 0.82rem; color: #003366; text-decoration: none; padding: 5px 12px; border: 1px solid #003366; border-radius: 5px; white-space: nowrap;
+  .county-portal-link { font-size: 0.82rem; color: #106EBE; text-decoration: none; padding: 5px 12px; border: 1px solid #106EBE; border-radius: 5px; white-space: nowrap;
     &:hover { background: #f0f4ff; }
-    &.property-link { background: #003366; color: white;
+    &.property-link { background: #106EBE; color: white;
       &:hover { background: #004080; } } } }
 
 .unsupported-card { display: flex; align-items: flex-start; gap: 14px; background: #fffbea; border: 1px solid #f0d060; border-radius: 8px; padding: 20px;
@@ -52,14 +53,19 @@
   span { font-size: 0.9rem; display: block; margin-bottom: 4px; }
   strong { color: #333; display: block; margin-bottom: 8px; }
   p { margin: 0 0 12px; font-size: 0.85rem; color: #999; } }
-.browse-cad-link { display: inline-block; margin-top: 12px; font-size: 0.85rem; color: #003366; text-decoration: none; padding: 7px 14px; border: 1px solid #003366; border-radius: 5px;
+.browse-cad-link { display: inline-block; margin-top: 12px; font-size: 0.85rem; color: #106EBE; text-decoration: none; padding: 7px 14px; border: 1px solid #106EBE; border-radius: 5px;
   &:hover { background: #f0f4ff; } }
 
 .result-card { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); overflow: hidden; }
 .result-header { display: flex; align-items: flex-start; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid #eee;
-  .result-address { font-size: 1rem; font-weight: 600; color: #003366; margin-bottom: 4px; }
+  .result-address { font-size: 1rem; font-weight: 600; color: #106EBE; margin-bottom: 4px; }
   .result-meta { font-size: 0.8rem; color: #888; } }
-.cad-link { font-size: 0.82rem; color: #003366; text-decoration: none; white-space: nowrap; padding: 6px 12px; border: 1px solid #003366; border-radius: 5px;
+.result-header-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.cache-badge { font-size: 0.72rem; font-weight: 600; padding: 3px 8px; border-radius: 10px; background: #fff3cd; color: #856404; border: 1px solid #ffc107; white-space: nowrap; }
+.refresh-btn { background: transparent; border: 1px solid #106EBE; color: #106EBE; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-size: 0.82rem; white-space: nowrap;
+  &:hover:not(:disabled) { background: #f0f4ff; }
+  &:disabled { opacity: 0.45; cursor: default; } }
+.cad-link { font-size: 0.82rem; color: #106EBE; text-decoration: none; white-space: nowrap; padding: 6px 12px; border: 1px solid #106EBE; border-radius: 5px;
   &:hover { background: #f0f4ff; } }
 
 .appraisal-table { width: 100%; border-collapse: collapse;
@@ -67,13 +73,63 @@
   td { padding: 12px 16px; font-size: 0.9rem; color: #333; border-bottom: 1px solid #f0f0f0; }
   tr:last-child td { border-bottom: none; }
   tr:hover td { background: #fafbff; }
-  .year-cell { font-weight: 600; color: #003366; }
+  .year-cell { font-weight: 600; color: #106EBE; }
   .appraised-val { font-weight: 600; } }
 
 .change-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.78rem; font-weight: 600;
   &.up { background: #e8f5e9; color: #2e7d32; }
   &.down { background: #fdecea; color: #c0392b; }
   &.baseline { background: #f0f0f0; color: #999; } }
+
+.current-year-row td { background: #fffbea; border-bottom: 1px solid #ffe082;
+  &.year-cell { color: #106EBE; }
+  &.appraised-val { color: #106EBE; } }
+.current-year-row:hover td { background: #fff8d6; }
+
+.projected-row td { background: #f7f9ff; color: #555; border-bottom: 1px solid #edf0f8;
+  &.year-cell { color: #106EBE; }
+  &.appraised-val { color: #444; } }
+.projected-row:hover td { background: #eff2ff; }
+
+.est-badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 3px; font-size: 0.68rem; font-weight: 700; background: #e3eaff; color: #3a5cb8; letter-spacing: 0.03em; vertical-align: middle; }
+
+.projection-caption-row td { padding: 6px 16px; border-bottom: none; }
+.projection-caption { font-size: 0.75rem; color: #aaa; font-style: italic; }
+
+.neighborhood-card { padding: 20px 24px; border-top: 1px solid #eee; }
+.neighborhood-card-divider { border-top: 1px dashed #e0e0e0; }
+.neighborhood-header { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px;
+  .neighborhood-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #106EBE; }
+  .neighborhood-radius { font-size: 0.75rem; color: #aaa; } }
+
+.neighborhood-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.nbh-item { display: flex; flex-direction: column; align-items: center; gap: 2px; background: #f5f7fa; border-radius: 8px; padding: 12px 18px; min-width: 80px; text-align: center;
+  .nbh-icon { font-size: 1.4rem; line-height: 1; }
+  .nbh-count { font-size: 1.3rem; font-weight: 700; color: #106EBE; }
+  .nbh-label { font-size: 0.7rem; color: #888; white-space: nowrap; }
+  &.nbh-highlight { background: #fff8e1; border: 1px solid #ffe082;
+    .nbh-count { color: #e65100; } } }
+
+.nbh-source { margin: 12px 0 0; font-size: 0.7rem; color: #ccc; }
+
+.market-context-card { padding: 20px 24px; border-top: 1px solid #eee; }
+.market-context-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;
+  .market-context-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #106EBE; margin-right: 8px; }
+  .market-context-zip { font-size: 0.78rem; color: #aaa; } }
+
+.market-cagr-badge { font-size: 0.82rem; font-weight: 600; padding: 4px 12px; border-radius: 12px; white-space: nowrap;
+  &.mc-up { background: #e8f5e9; color: #2e7d32; }
+  &.mc-down { background: #fdecea; color: #c0392b; }
+  .mc-vs { font-weight: 400; margin-left: 6px; opacity: 0.75; font-size: 0.76rem; } }
+
+.market-table { width: 100%; border-collapse: collapse; margin-bottom: 8px;
+  th { background: #f8f9fa; padding: 8px 16px; text-align: left; font-size: 0.75rem; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid #eee; }
+  td { padding: 10px 16px; font-size: 0.88rem; color: #333; border-bottom: 1px solid #f4f4f4; }
+  tr:last-child td { border-bottom: none; }
+  .mc-year { font-weight: 600; color: #106EBE; }
+  .mc-value { font-weight: 500; } }
+
+.mc-source { font-size: 0.7rem; color: #ccc; margin: 0; }
 
 .owner-info { padding: 14px 24px; border-bottom: 1px solid #eee; background: #fafbff;
   .owner-row { display: flex; gap: 12px; align-items: baseline; padding: 3px 0;
