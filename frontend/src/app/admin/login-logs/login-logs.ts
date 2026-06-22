@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { InvestorService } from '../../shared/services/investor.service';
 import { AuthService } from '../../shared/services/auth.service';
-import { LoginLog } from '../../shared/models/investor.model';
+import { LoginLog, PageVisit } from '../../shared/models/investor.model';
 
 interface UserSummary {
   name: string;
@@ -22,6 +22,7 @@ interface UserSummary {
 export class LoginLogsComponent implements OnInit {
   logs: LoginLog[] = [];
   userSummary: UserSummary[] = [];
+  visitorLogs: PageVisit[] = [];
 
   constructor(
     private investorService: InvestorService,
@@ -33,6 +34,10 @@ export class LoginLogsComponent implements OnInit {
     this.investorService.getLoginLogs().subscribe(data => {
       this.logs = data;
       this.userSummary = this.buildSummary(data);
+      this.cdr.detectChanges();
+    });
+    this.investorService.getVisitorLogs().subscribe(data => {
+      this.visitorLogs = data;
       this.cdr.detectChanges();
     });
   }

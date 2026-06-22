@@ -41,6 +41,9 @@ services:
     restart: always
     environment:
       CENSUS_API_KEY: ${CENSUS_API_KEY:-}
+      COLLIN_DB_PATH: ${COLLIN_DB_PATH:-/data/collin/collin.db}
+    volumes:
+      - ${COLLIN_DATA_DIR:-/Users/vinaymac/Documents/Property Analysis/Collin County}:/data/collin:ro
     depends_on:
       - backend
 

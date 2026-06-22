@@ -1,0 +1,352 @@
+.layout { display: flex; min-height: 100vh; }
+.sidebar { width: 220px; background: #106EBE; color: white; padding: 24px 16px; display: flex; flex-direction: column;
+  .logo { font-size: 1.1rem; font-weight: bold; margin-bottom: 32px; }
+  ul { list-style: none; padding: 0; flex: 1;
+    li a { display: block; padding: 10px 12px; color: #cdd8e8; border-radius: 6px; text-decoration: none; font-size: 0.9rem;
+      &:hover, &.active { background: #004080; color: white; } }
+    .nav-section-header { padding: 16px 12px 4px; font-size: 0.7rem; color: rgba(205,216,232,0.5); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+    .sub-nav-item a { padding-left: 26px; font-size: 0.82rem; color: rgba(205,216,232,0.8); }
+    .logout-btn { display: block; width: 100%; margin-top: 4px; background: transparent; border: 1px solid rgba(205,216,232,0.4); color: #cdd8e8; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 0.9rem; text-align: left;
+      &:hover { background: #004080; color: white; border-color: transparent; } } } }
+
+.content {
+  flex: 1;
+  min-width: 0;
+  padding: 32px;
+  background: #f5f7fa;
+  overflow-y: auto;
+
+  h1 { color: #106EBE; margin: 0 0 6px; font-size: 1.6rem; }
+  .subtitle { color: #666; font-size: 0.9rem; margin: 0 0 24px; }
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: 340px 1fr;
+  gap: 24px;
+  align-items: start;
+
+  @media (max-width: 900px) { grid-template-columns: 1fr; }
+}
+
+.inputs-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+
+  h2 { color: #106EBE; font-size: 0.95rem; font-weight: 600; margin: 0 0 14px; }
+  .section-divider { margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee; }
+}
+
+.field-group {
+  margin-bottom: 12px;
+
+  label { display: block; font-size: 0.8rem; color: #555; margin-bottom: 4px; font-weight: 500; }
+  .hint { display: block; font-size: 0.76rem; color: #999; margin-top: 3px; }
+
+  select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+    &:focus { outline: none; border-color: #106EBE; }
+  }
+}
+
+.input-prefix, .input-suffix {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+
+  span {
+    padding: 0 10px;
+    background: #f5f7fa;
+    color: #666;
+    font-size: 0.88rem;
+    border-right: 1px solid #ddd;
+    white-space: nowrap;
+    height: 36px;
+    display: flex;
+    align-items: center;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    min-width: 0;
+    &:focus { outline: none; }
+  }
+
+  &.input-suffix span { border-right: none; border-left: 1px solid #ddd; order: 2; }
+  &.input-suffix input { order: 1; }
+}
+
+.down-payment-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.investment-section {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+
+  h2 { color: #106EBE; font-size: 0.95rem; font-weight: 600; margin: 0 0 14px; }
+  .optional-label { color: #999; font-weight: 400; font-size: 0.85rem; }
+}
+
+.results-panel { display: flex; flex-direction: column; gap: 18px; }
+
+.payment-card {
+  background: #106EBE;
+  color: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 12px rgba(16,110,190,0.25);
+
+  .payment-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 14px;
+    .label { font-size: 0.9rem; opacity: 0.85; }
+    .amount { font-size: 1.9rem; font-weight: 700; }
+  }
+
+  .payment-breakdown {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+  }
+
+  .breakdown-row { display: flex; justify-content: space-between; font-size: 0.88rem; opacity: 0.85; }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+  &.span-2 { grid-column: span 2; }
+  .stat-label { font-size: 0.78rem; color: #777; margin-bottom: 3px; }
+  .stat-value { font-size: 1.2rem; font-weight: 600; color: #1a1a1a; }
+  .stat-hint { font-size: 0.73rem; color: #aaa; margin-top: 2px; }
+}
+
+.accent-green  { color: #2e7d32 !important; }
+.accent-red    { color: #c62828 !important; }
+.pmi-waived    { color: #2e7d32 !important; }
+.override-hint { color: #e65100 !important; }
+
+.auto-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.68rem;
+  font-weight: 600;
+  border-radius: 4px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.reset-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #106EBE;
+  font-size: 0.76rem;
+  cursor: pointer;
+  text-decoration: underline;
+  &:hover { color: #0055aa; }
+}
+
+.breakeven-card {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-left: 4px solid #f9a825;
+  border-radius: 10px;
+  padding: 14px 18px;
+
+  .breakeven-main { font-size: 0.95rem; color: #5d4037; strong { color: #e65100; font-size: 1.05rem; } }
+  .breakeven-hint { font-size: 0.76rem; color: #8d6e63; margin-top: 4px; }
+  .no-breakeven { color: #c62828; }
+}
+
+.amort-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+
+  h2 { color: #106EBE; font-size: 0.95rem; font-weight: 600; margin: 0 0 14px;
+    .term-note { color: #999; font-weight: 400; font-size: 0.85rem; }
+  }
+}
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.86rem;
+
+    thead tr {
+      background: #f5f7fa;
+      th { padding: 9px 12px; text-align: right; color: #555; font-weight: 600; white-space: nowrap;
+        &:first-child { text-align: center; }
+      }
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      &:last-child { border-bottom: none; }
+      &:hover { background: #fafbfc; }
+      td { padding: 8px 12px; text-align: right; &.year-col { text-align: center; color: #555; font-weight: 500; } }
+    }
+  }
+}
+
+.disclaimer {
+  margin-top: 32px;
+  padding: 14px 18px;
+  background: #f5f7fa;
+  border: 1px solid #dde3ec;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  color: #777;
+  line-height: 1.6;
+  strong { color: #555; }
+}
+
+.toggle-table-btn {
+  display: block;
+  margin: 12px auto 0;
+  padding: 7px 22px;
+  background: transparent;
+  border: 1px solid #106EBE;
+  color: #106EBE;
+  border-radius: 20px;
+  font-size: 0.83rem;
+  cursor: pointer;
+  &:hover { background: #106EBE; color: white; }
+}
+
+/* ─── Mobile: sidebar → horizontal scrollable top nav ─── */
+
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    padding: 0;
+    align-items: stretch;
+
+    .logo {
+      padding: 10px 16px;
+      margin-bottom: 0;
+      font-size: 0.95rem;
+      border-right: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+      padding: 0 8px;
+      gap: 2px;
+      align-items: center;
+      flex: 1;
+
+      .nav-section-header { display: none; }
+
+      li { flex-shrink: 0; }
+
+      li a {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+
+      .sub-nav-item a { padding-left: 12px; font-size: 0.8rem; }
+
+      .logout-btn {
+        flex-shrink: 0;
+        width: auto;
+        margin-top: 0;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        border-radius: 6px;
+      }
+    }
+  }
+
+  .content { padding: 20px 0 40px; }
+
+  .inputs-panel,
+  .investment-section,
+  .amort-section { border-radius: 0; }
+
+  .payment-card { border-radius: 0; }
+
+  .breakeven-card { border-radius: 0; }
+
+  .stat-card { border-radius: 0; }
+}
+
+/* ─── Mobile-only fixes (mortgage-specific elements) ─── */
+
+@media (max-width: 600px) {
+  .down-payment-row {
+    .input-prefix span, .input-suffix span { padding: 0 5px; font-size: 0.78rem; min-width: 18px; }
+    input { min-width: 0; }
+  }
+
+  .payment-card {
+    .payment-total {
+      flex-direction: column;
+      gap: 2px;
+      .amount { font-size: 1.7rem; }
+    }
+  }
+
+  .table-wrap table {
+    font-size: 0.76rem;
+    min-width: 400px;
+    thead tr th, tbody tr td { padding: 7px 8px; }
+  }
+}

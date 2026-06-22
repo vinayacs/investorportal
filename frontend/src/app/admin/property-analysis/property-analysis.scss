@@ -131,6 +131,74 @@
 
 .mc-source { font-size: 0.7rem; color: #ccc; margin: 0; }
 
+// ── Residential Estimate Card ──────────────────────────────────────────────
+.estimate-card {
+  padding: 20px 24px;
+  border-top: 1px solid #eee;
+  background: #f0f7ff;
+}
+.estimate-header {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
+  .estimate-title-group { display: flex; flex-direction: column; gap: 3px; }
+  .estimate-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #106EBE; }
+  .estimate-source { font-size: 0.75rem; color: #888; }
+  .estimate-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+}
+.isd-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7;
+  border-radius: 6px; padding: 4px 10px; font-size: 0.8rem; font-weight: 600;
+  .isd-premium { font-weight: 400; font-size: 0.75rem; color: #555; }
+}
+.confidence-badge {
+  padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;
+  &.confidence-high   { background: #e8f5e9; color: #2e7d32; }
+  &.confidence-medium { background: #fff8e1; color: #e65100; }
+  &.confidence-low    { background: #fdecea; color: #c0392b; }
+}
+.estimate-values {
+  display: flex; flex-direction: column; gap: 14px;
+}
+.estimate-main {
+  display: flex; flex-direction: column; gap: 2px;
+  .estimate-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em; color: #888; font-weight: 600; }
+  .estimate-value { font-size: 1.75rem; font-weight: 700; color: #106EBE; }
+}
+.estimate-meta-row {
+  display: flex; flex-wrap: wrap; gap: 20px;
+  .estimate-meta-item { display: flex; flex-direction: column; gap: 2px;
+    .meta-label { font-size: 0.7rem; color: #999; text-transform: uppercase; letter-spacing: 0.04em; }
+    .meta-value { font-size: 0.88rem; font-weight: 600; color: #333; }
+  }
+}
+.estimate-disclaimer { font-size: 0.7rem; color: #aaa; margin: 12px 0 0; font-style: italic; }
+
+// ── Comparable Sales Table ─────────────────────────────────────────────────
+.comps-card {
+  padding: 20px 24px;
+  border-top: 1px solid #eee;
+}
+.comps-header {
+  display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px;
+  .comps-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.06em; color: #106EBE; }
+  .comps-subtitle { font-size: 0.75rem; color: #aaa; }
+}
+.comps-table {
+  width: 100%; border-collapse: collapse; margin-bottom: 8px;
+  th { background: #f8f9fa; padding: 8px 12px; text-align: left; font-size: 0.75rem;
+    font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.04em;
+    border-bottom: 1px solid #eee; }
+  td { padding: 10px 12px; font-size: 0.85rem; color: #333; border-bottom: 1px solid #f4f4f4; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafbff; }
+  .comp-address { color: #555; font-size: 0.82rem; max-width: 240px; }
+  .comp-ppsf { font-weight: 600; color: #106EBE; }
+}
+.comps-source { font-size: 0.7rem; color: #ccc; margin: 0; }
+
 .owner-info { padding: 14px 24px; border-bottom: 1px solid #eee; background: #fafbff;
   .owner-row { display: flex; gap: 12px; align-items: baseline; padding: 3px 0;
     .owner-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
@@ -138,3 +206,65 @@
     .owner-value { font-size: 0.9rem; color: #333; } } }
 
 .chart-container { padding: 24px 24px 16px; border-bottom: 1px solid #eee; height: 280px; position: relative; }
+
+/* ─── Mobile: sidebar → horizontal scrollable top nav ─── */
+
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    padding: 0;
+    align-items: stretch;
+
+    .logo {
+      padding: 10px 16px;
+      margin-bottom: 0;
+      font-size: 0.95rem;
+      border-right: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+      padding: 0 8px;
+      gap: 2px;
+      align-items: center;
+      flex: 1;
+
+      .nav-section-header { display: none; }
+
+      li { flex-shrink: 0; }
+
+      li a {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+
+      .sub-nav-item a { padding-left: 12px; font-size: 0.8rem; }
+
+      .logout-btn {
+        flex-shrink: 0;
+        width: auto;
+        margin-top: 0;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        border-radius: 6px;
+      }
+    }
+  }
+
+  .content { padding: 20px 16px 40px; }
+}

@@ -62,6 +62,37 @@ interface Neighborhood {
   amenities: NeighborhoodAmenities;
 }
 
+interface PropertyDetails {
+  sqft: number | null;
+  beds: number | null;
+  baths: number | null;
+  yearBuilt: number | null;
+}
+
+interface Comp {
+  address: string;
+  sqft: number;
+  beds: number | null;
+  baths: number | null;
+  yearBuilt: number | null;
+  marketValue: number;
+  pricePerSqft: number;
+}
+
+interface ResidentialEstimate {
+  estimatedValue: number;
+  medianPpsf: number;
+  subjectSqft: number;
+  compsUsed: number;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+interface SchoolDistrict {
+  name: string;
+  premiumPct: number;
+  zip: string;
+}
+
 interface AnalysisResult {
   supported: boolean;
   county: string;
@@ -76,8 +107,11 @@ interface AnalysisResult {
   projection: Projection | null;
   neighborhoods: Neighborhood[];
   marketContext: MarketContext | null;
+  propertyDetails?: PropertyDetails | null;
+  comps?: Comp[];
+  residentialEstimate?: ResidentialEstimate | null;
+  schoolDistrict?: SchoolDistrict | null;
   message?: string;
-  _fromCache?: boolean;
 }
 
 const COUNTY_PORTALS: Record<string, string> = {
@@ -123,7 +157,6 @@ export class PropertyAnalysisComponent implements OnDestroy {
   error = '';
   result: AnalysisResult | null = null;
   readonly currentYear = new Date().getFullYear();
-  fromCache = false;
 
   private chart: Chart | null = null;
 
@@ -151,24 +184,20 @@ export class PropertyAnalysisComponent implements OnDestroy {
     return !!this.propertyId.trim() && !!this.selectedCounty;
   }
 
-  analyze(refresh = false): void {
+  analyze(): void {
     if (!this.canAnalyze) return;
     this.loading = true;
     this.error = '';
     this.result = null;
-    this.fromCache = false;
     this.destroyChart();
 
     const params: Record<string, string> = this.searchType === 'address'
       ? { address: this.address.trim() }
       : { propertyId: this.propertyId.trim(), county: this.selectedCounty };
 
-    if (refresh) params['refresh'] = 'true';
-
     this.http.get<AnalysisResult>('/api/admin/property-analysis', { params }).subscribe({
       next: data => {
         data.years = [...data.years].sort((a, b) => a.year - b.year);
-        this.fromCache = !!data._fromCache;
         this.result = data;
         this.loading = false;
         this.cdr.detectChanges();
@@ -183,8 +212,6 @@ export class PropertyAnalysisComponent implements OnDestroy {
       }
     });
   }
-
-  refresh(): void { this.analyze(true); }
 
   private renderChart(): void {
     if (!this.chartCanvas) return;

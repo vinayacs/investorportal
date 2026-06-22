@@ -73,6 +73,10 @@ class BaseCADScraper(ABC):
         Requires at least 2 years where the property had a structure (improvementValue > 0).
         Years where improvementValue is 0/null are excluded — they represent vacant lots
         or new construction years and would produce a misleading CAGR.
+
+        To avoid projections dominated by boom periods (e.g. 2021-2022 COVID-era
+        appreciation), the CAGR is blended: 60% weight on the trailing 2-year trend
+        and 40% on the full-period CAGR, then capped at 8% annually.
         """
         valid = sorted(
             [
@@ -94,7 +98,26 @@ class BaseCADScraper(ABC):
         if v_start <= 0 or v_end <= 0:
             return None
 
-        cagr = (v_end / v_start) ** (1 / period) - 1
+        full_cagr = (v_end / v_start) ** (1 / period) - 1
+
+        # Trailing 2-year CAGR: gives recent-trend weight so boom-era data
+        # doesn't inflate projections when the market has since cooled.
+        trailing_cagr = None
+        if len(valid) >= 3:
+            t_start = valid[-3]["appraisedValue"]
+            t_period = latest["year"] - valid[-3]["year"]
+            if t_start > 0 and t_period > 0:
+                trailing_cagr = (v_end / t_start) ** (1 / t_period) - 1
+
+        if trailing_cagr is not None and trailing_cagr < full_cagr:
+            # Recent trend is slower — blend 60% recent / 40% long-term
+            cagr = trailing_cagr * 0.6 + full_cagr * 0.4
+        else:
+            cagr = full_cagr
+
+        # Cap at 8% — prevents runaway projections from anomalous periods
+        MAX_CAGR = 0.08
+        cagr = min(cagr, MAX_CAGR)
 
         land_pct = (
             latest["landValue"] / v_end

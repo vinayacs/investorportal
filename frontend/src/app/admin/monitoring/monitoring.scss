@@ -55,3 +55,65 @@ table { width: 100%; border-collapse: collapse;
 .error-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #c0392b; font-size: 0.8rem; }
 
 .empty-state { background: white; border-radius: 8px; padding: 40px; text-align: center; color: #999; font-size: 0.9rem; box-shadow: 0 1px 4px rgba(0,0,0,0.08); margin-top: 28px; }
+
+/* ─── Mobile: sidebar → horizontal scrollable top nav ─── */
+
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    padding: 0;
+    align-items: stretch;
+
+    .logo {
+      padding: 10px 16px;
+      margin-bottom: 0;
+      font-size: 0.95rem;
+      border-right: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+      padding: 0 8px;
+      gap: 2px;
+      align-items: center;
+      flex: 1;
+
+      .nav-section-header { display: none; }
+
+      li { flex-shrink: 0; }
+
+      li a {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+
+      .sub-nav-item a { padding-left: 12px; font-size: 0.8rem; }
+
+      .logout-btn {
+        flex-shrink: 0;
+        width: auto;
+        margin-top: 0;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        border-radius: 6px;
+      }
+    }
+  }
+
+  .content { padding: 20px 16px 40px; }
+}

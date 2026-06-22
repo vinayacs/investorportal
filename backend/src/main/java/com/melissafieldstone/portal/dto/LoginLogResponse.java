@@ -10,6 +10,9 @@ public class LoginLogResponse {
     private String investorName;
     private LocalDateTime loginTimestamp;
     private String ipAddress;
+    private String city;
+    private String country;
+    private String region;
     private String status;
     private String failureReason;
     private String action;

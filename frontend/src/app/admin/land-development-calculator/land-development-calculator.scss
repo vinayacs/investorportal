@@ -275,3 +275,65 @@
   line-height: 1.6;
   strong { color: #555; }
 }
+
+/* ─── Mobile: sidebar → horizontal scrollable top nav ─── */
+
+@media (max-width: 768px) {
+  .layout { flex-direction: column; }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    padding: 0;
+    align-items: stretch;
+
+    .logo {
+      padding: 10px 16px;
+      margin-bottom: 0;
+      font-size: 0.95rem;
+      border-right: 1px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    ul {
+      display: flex;
+      flex-direction: row;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      &::-webkit-scrollbar { display: none; }
+      padding: 0 8px;
+      gap: 2px;
+      align-items: center;
+      flex: 1;
+
+      .nav-section-header { display: none; }
+
+      li { flex-shrink: 0; }
+
+      li a {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+      }
+
+      .sub-nav-item a { padding-left: 12px; font-size: 0.8rem; }
+
+      .logout-btn {
+        flex-shrink: 0;
+        width: auto;
+        margin-top: 0;
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        white-space: nowrap;
+        border-radius: 6px;
+      }
+    }
+  }
+
+  .content { padding: 20px 16px 40px; }
+}

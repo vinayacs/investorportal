@@ -1,0 +1,25 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Admin Portal</div>
+    <ul>
+      <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
+      <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/mortgage-calculator" routerLinkActive="active">Mortgage Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-development-calculator" routerLinkActive="active">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-price-calculator" routerLinkActive="active">Land Price Calculator</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login History</a></li>
+      <li><a routerLink="/admin/location-stats" routerLinkActive="active">Location Stats</a></li>
+      <li><a routerLink="/admin/monitoring" routerLinkActive="active">Monitoring</a></li>
+      <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+      <li><button class="logout-btn" (click)="logout()">Logout</button></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <h1>Land Price Calculator</h1>
+    <p class="subtitle">Calculate total land price and per-unit rates across all common area units.</p>
+    <app-land-price-calculator />
+  </main>
+</div>

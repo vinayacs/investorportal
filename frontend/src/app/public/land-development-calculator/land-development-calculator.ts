@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { TrackingService } from '../../shared/services/tracking.service';
 
 const SQFT_PER_ACRE = 43_560;
 
@@ -34,6 +35,7 @@ interface DevResult {
   styleUrl: './land-development-calculator.scss'
 })
 export class LandDevelopmentCalculatorComponent implements OnInit {
+  constructor(private tracking: TrackingService) {}
   // Land
   landAcres = 5;
   landCostMode: 'per_acre' | 'per_sqft' = 'per_sqft';
@@ -60,7 +62,10 @@ export class LandDevelopmentCalculatorComponent implements OnInit {
 
   result: DevResult | null = null;
 
-  ngOnInit(): void { this.calculate(); }
+  ngOnInit(): void {
+    this.tracking.track('Land Development Calculator');
+    this.calculate();
+  }
 
   onLandAcresChange(): void {
     if (!this.builtSqftOverridden) {

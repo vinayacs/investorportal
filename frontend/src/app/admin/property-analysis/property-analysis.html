@@ -8,7 +8,9 @@
       <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
       <li class="sub-nav-item"><a routerLink="/admin/mortgage-calculator">Mortgage Calculator</a></li>
       <li class="sub-nav-item"><a routerLink="/admin/land-development-calculator">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-price-calculator">Land Price Calculator</a></li>
       <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login History</a></li>
+      <li><a routerLink="/admin/location-stats" routerLinkActive="active">Location Stats</a></li>
       <li><a routerLink="/admin/monitoring" routerLinkActive="active">Monitoring</a></li>
       <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
       <li><button class="logout-btn" (click)="logout()">Logout</button></li>
@@ -117,14 +119,6 @@
               <div class="result-address">{{ result.propertyAddress || result.address }}</div>
               <div class="result-meta">{{ result.county }} County &bull; Property ID: {{ result.propertyId }}</div>
             </div>
-            <div class="result-header-right">
-              @if (fromCache) {
-                <span class="cache-badge">Cached</span>
-              }
-              <button class="refresh-btn" (click)="refresh()" [disabled]="loading" title="Refresh from CAD">
-                ↺ Refresh
-              </button>
-            </div>
           </div>
 
           @if (result.ownerName || result.mailingAddress) {
@@ -216,6 +210,93 @@
               }
             </tbody>
           </table>
+          <!-- Residential Estimate + ISD (Collin County SQLite comps) -->
+          @if (result.residentialEstimate) {
+            <div class="estimate-card">
+              <div class="estimate-header">
+                <div class="estimate-title-group">
+                  <span class="estimate-title">Residential Value Estimate</span>
+                  <span class="estimate-source">Based on {{ result.residentialEstimate.compsUsed }} comparable sales in same ZIP</span>
+                </div>
+                <div class="estimate-right">
+                  @if (result.schoolDistrict) {
+                    <span class="isd-badge">
+                      🏫 {{ result.schoolDistrict.name }}
+                      <span class="isd-premium">+{{ result.schoolDistrict.premiumPct }}% premium market</span>
+                    </span>
+                  }
+                  <span class="confidence-badge confidence-{{ result.residentialEstimate.confidence }}">
+                    {{ result.residentialEstimate.confidence | titlecase }} confidence
+                  </span>
+                </div>
+              </div>
+              <div class="estimate-values">
+                <div class="estimate-main">
+                  <span class="estimate-label">Estimated Market Value</span>
+                  <span class="estimate-value">{{ formatCurrency(result.residentialEstimate.estimatedValue) }}</span>
+                </div>
+                <div class="estimate-meta-row">
+                  <div class="estimate-meta-item">
+                    <span class="meta-label">Median $/sqft</span>
+                    <span class="meta-value">${{ result.residentialEstimate.medianPpsf }}/sqft</span>
+                  </div>
+                  <div class="estimate-meta-item">
+                    <span class="meta-label">Subject Size</span>
+                    <span class="meta-value">{{ result.residentialEstimate.subjectSqft.toLocaleString() }} sqft</span>
+                  </div>
+                  @if (result.propertyDetails?.beds) {
+                    <div class="estimate-meta-item">
+                      <span class="meta-label">Beds / Baths</span>
+                      <span class="meta-value">{{ result.propertyDetails!.beds }}bd / {{ result.propertyDetails!.baths }}ba</span>
+                    </div>
+                  }
+                  @if (result.propertyDetails?.yearBuilt) {
+                    <div class="estimate-meta-item">
+                      <span class="meta-label">Year Built</span>
+                      <span class="meta-value">{{ result.propertyDetails!.yearBuilt }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+              <p class="estimate-disclaimer">Estimate based on CCAD market values of comparable properties — not a formal appraisal. Actual sale prices may vary.</p>
+            </div>
+          }
+
+          <!-- Comparable Sales Table -->
+          @if (result.comps && result.comps.length > 0) {
+            <div class="comps-card">
+              <div class="comps-header">
+                <span class="comps-title">Comparable Sales</span>
+                <span class="comps-subtitle">Similar properties in same ZIP · CCAD market values</span>
+              </div>
+              <table class="comps-table">
+                <thead>
+                  <tr>
+                    <th>Address</th>
+                    <th>Sqft</th>
+                    <th>Bed/Bath</th>
+                    <th>Year Built</th>
+                    <th>Market Value</th>
+                    <th>$/sqft</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (comp of result.comps; track comp.address) {
+                    <tr>
+                      <td class="comp-address">{{ comp.address }}</td>
+                      <td>{{ comp.sqft.toLocaleString() }}</td>
+                      <td>{{ comp.beds ?? '—' }} / {{ comp.baths ?? '—' }}</td>
+                      <td>{{ comp.yearBuilt ?? '—' }}</td>
+                      <td>{{ formatCurrency(comp.marketValue) }}</td>
+                      <td class="comp-ppsf">${{ comp.pricePerSqft }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              <p class="comps-source">Source: Collin CAD parcel data · Values are CAD market assessments, not recorded sale prices</p>
+            </div>
+          }
+
           @if (result.neighborhoods.length > 0) {
             @for (nb of result.neighborhoods; track nb.radiusMiles) {
               <div class="neighborhood-card" [class.neighborhood-card-divider]="!$first">

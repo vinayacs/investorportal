@@ -63,9 +63,23 @@ export interface LoginLog {
   investorName: string;
   loginTimestamp: string;
   ipAddress: string;
+  city: string;
+  country: string;
+  region: string;
   status: string;
   failureReason: string;
   action: string;
+}
+
+export interface PageVisit {
+  id: number;
+  page: string;
+  ipAddress: string;
+  city: string;
+  country: string;
+  region: string;
+  userAgent: string;
+  visitedAt: string;
 }
 
 export interface MfaStatus {

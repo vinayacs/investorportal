@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { TrackingService } from '../../shared/services/tracking.service';
 
 interface AmortYear {
   year: number;
@@ -37,6 +38,7 @@ interface CalcResult {
   styleUrl: './mortgage-calculator.scss'
 })
 export class MortgageCalculatorComponent implements OnInit {
+  constructor(private tracking: TrackingService) {}
   homePrice = 500000;
   downPaymentPct = 20;
   downPaymentDollar = 100000;
@@ -57,6 +59,7 @@ export class MortgageCalculatorComponent implements OnInit {
   readonly termOptions = [10, 15, 20, 25, 30];
 
   ngOnInit(): void {
+    this.tracking.track('Mortgage Calculator');
     this.calculate();
   }
 

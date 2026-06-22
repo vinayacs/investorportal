@@ -5,8 +5,12 @@
       <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
       <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
       <li><a routerLink="/investments" routerLinkActive="active">My Investments</a></li>
+      <li class="nav-section-header">Realty Calculators</li>
+      <li class="sub-nav-item"><a routerLink="/investor/mortgage-calculator" routerLinkActive="active">Mortgage Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/investor/land-development-calculator" routerLinkActive="active">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/investor/land-price-calculator" routerLinkActive="active">Land Price Calculator</a></li>
+      <li><button class="logout-btn" (click)="logout()">Logout</button></li>
     </ul>
-    <button class="logout-btn" (click)="logout()">Logout</button>
   </nav>
 
   <main class="content">
