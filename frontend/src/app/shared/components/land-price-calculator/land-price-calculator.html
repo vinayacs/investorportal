@@ -1,0 +1,83 @@
+<div class="lpc-card">
+  <div class="currency-toggle">
+    <button [class.active]="currency === 'USD'" (click)="currency = 'USD'; calculate()">$ USD</button>
+    <button [class.active]="currency === 'INR'" (click)="currency = 'INR'; calculate()">₹ INR</button>
+  </div>
+
+  <div class="lpc-inputs">
+
+    <div class="input-row">
+      <label>Area</label>
+      <div class="input-with-unit">
+        <input
+          type="number"
+          [(ngModel)]="areaValue"
+          (ngModelChange)="calculate()"
+          placeholder="Enter area"
+          min="0"
+          step="any" />
+        <select [(ngModel)]="areaUnit" (ngModelChange)="calculate()">
+          <option value="acres">Acres</option>
+          <option value="sqft">Sq Ft</option>
+          <option value="sqyards">Sq Yards</option>
+          <option value="cents">Cents</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="input-row">
+      <label>Price</label>
+      <div class="input-with-unit">
+        <div class="price-prefix">
+          <span class="prefix-symbol">{{ currencySymbol }}</span>
+          <input
+            type="number"
+            [(ngModel)]="priceValue"
+            (ngModelChange)="calculate()"
+            placeholder="Enter price"
+            min="0"
+            step="any" />
+        </div>
+        <select [(ngModel)]="priceUnit" (ngModelChange)="calculate()">
+          <option value="per_sqft">per Sq Ft</option>
+          <option value="per_acre">per Acre</option>
+          <option value="per_sqyard">per Sq Yard</option>
+          <option value="per_cent">per Cent</option>
+        </select>
+      </div>
+    </div>
+
+    @if (areaValue || priceValue) {
+      <button class="reset-btn" (click)="reset()">Clear</button>
+    }
+  </div>
+
+  @if (result) {
+    <div class="lpc-results">
+      <div class="total-price">
+        <span class="total-label">Total Price</span>
+        <span class="total-value">{{ fmt(result.totalPrice) }}</span>
+        <span class="total-area">{{ fmtArea(result.areaSqft) }} · {{ result.areaAcres.toFixed(4) }} acres</span>
+      </div>
+
+      <div class="unit-grid">
+        <div class="unit-card">
+          <span class="unit-label">Per Acre</span>
+          <span class="unit-value">{{ fmt(result.perAcre) }}</span>
+        </div>
+        <div class="unit-card">
+          <span class="unit-label">Per Sq Ft</span>
+          <span class="unit-value">{{ fmt(result.perSqft) }}</span>
+        </div>
+        <div class="unit-card">
+          <span class="unit-label">Per Sq Yard</span>
+          <span class="unit-value">{{ fmt(result.perSqyard) }}</span>
+        </div>
+        <div class="unit-card">
+          <span class="unit-label">Per Cent</span>
+          <span class="unit-value">{{ fmt(result.perCent) }}</span>
+        </div>
+      </div>
+    </div>
+  }
+</div>

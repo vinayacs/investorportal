@@ -1,0 +1,388 @@
+/* ─── Base layout ─── */
+
+.calc-page {
+  min-height: 100vh;
+  background: #f0f4f8;
+  font-family: inherit;
+}
+
+.calc-header {
+  background: #106EBE;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .header-brand { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.02em; color: white; }
+
+  .header-tools {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.88rem; &:hover { color: white; } }
+    .signin-link { color: white; font-weight: 600; }
+  }
+}
+
+.calc-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 40px 24px 60px;
+
+  h1 { color: #106EBE; font-size: 1.8rem; margin: 0 0 6px; }
+  .subtitle { color: #666; margin: 0 0 32px; font-size: 1rem; }
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: 360px 1fr;
+  gap: 28px;
+  align-items: start;
+
+  @media (max-width: 800px) { grid-template-columns: 1fr; }
+}
+
+/* ─── Inputs Panel ─── */
+
+.inputs-panel {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+
+  h2 { color: #106EBE; font-size: 1rem; font-weight: 600; margin: 0 0 16px; }
+  .section-divider { margin-top: 24px; padding-top: 20px; border-top: 1px solid #eee; }
+}
+
+.field-group {
+  margin-bottom: 14px;
+
+  label { display: block; font-size: 0.82rem; color: #555; margin-bottom: 5px; font-weight: 500; }
+  .hint { display: block; font-size: 0.78rem; color: #999; margin-top: 3px; }
+
+  select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 9px 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.92rem;
+    background: white;
+    cursor: pointer;
+    &:focus { outline: none; border-color: #106EBE; }
+  }
+}
+
+.input-prefix, .input-suffix {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  overflow: hidden;
+  background: white;
+
+  span {
+    padding: 0 10px;
+    background: #f5f7fa;
+    color: #666;
+    font-size: 0.9rem;
+    border-right: 1px solid #ddd;
+    white-space: nowrap;
+    height: 38px;
+    display: flex;
+    align-items: center;
+  }
+
+  input {
+    flex: 1;
+    border: none;
+    padding: 9px 10px;
+    font-size: 0.92rem;
+    min-width: 0;
+    &:focus { outline: none; }
+  }
+
+  &.input-suffix span { border-right: none; border-left: 1px solid #ddd; order: 2; }
+  &.input-suffix input { order: 1; }
+}
+
+.down-payment-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ─── Results Panel ─── */
+
+.investment-section {
+  background: white;
+  border-radius: 12px;
+  padding: 20px 24px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+
+  h2 { color: #106EBE; font-size: 1rem; font-weight: 600; margin: 0 0 14px; }
+  .optional-label { color: #999; font-weight: 400; font-size: 0.88rem; }
+}
+
+.results-panel { display: flex; flex-direction: column; gap: 20px; }
+
+.payment-card {
+  background: #106EBE;
+  color: white;
+  border-radius: 12px;
+  padding: 24px 28px;
+  box-shadow: 0 2px 12px rgba(0,51,102,0.2);
+
+  .payment-total {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 18px;
+    .label { font-size: 0.95rem; opacity: 0.85; }
+    .amount { font-size: 2rem; font-weight: 700; }
+  }
+
+  .payment-breakdown {
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .breakdown-row { display: flex; justify-content: space-between; font-size: 0.9rem; opacity: 0.85; }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+
+  &.span-2 { grid-column: span 2; }
+  .stat-label { font-size: 0.8rem; color: #777; margin-bottom: 4px; }
+  .stat-value { font-size: 1.3rem; font-weight: 600; color: #1a1a1a; }
+  .stat-hint { font-size: 0.75rem; color: #aaa; margin-top: 2px; }
+}
+
+.accent-green  { color: #2e7d32 !important; }
+.accent-red    { color: #c62828 !important; }
+.pmi-waived    { color: #2e7d32 !important; }
+.override-hint { color: #e65100 !important; }
+
+.auto-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  background: #e8f5e9;
+  color: #2e7d32;
+  font-size: 0.7rem;
+  font-weight: 600;
+  border-radius: 4px;
+  vertical-align: middle;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.reset-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #106EBE;
+  font-size: 0.78rem;
+  cursor: pointer;
+  text-decoration: underline;
+  &:hover { color: #0055aa; }
+}
+
+.breakeven-card {
+  background: #fff8e1;
+  border: 1px solid #ffe082;
+  border-left: 4px solid #f9a825;
+  border-radius: 10px;
+  padding: 16px 20px;
+
+  .breakeven-main { font-size: 0.95rem; color: #5d4037; strong { color: #e65100; font-size: 1.05rem; } }
+  .breakeven-hint { font-size: 0.78rem; color: #8d6e63; margin-top: 4px; }
+  .no-breakeven { color: #c62828; }
+}
+
+/* ─── Amortization Table ─── */
+
+.amort-section {
+  background: white;
+  border-radius: 12px;
+  padding: 24px 28px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+
+  h2 { color: #106EBE; font-size: 1rem; font-weight: 600; margin: 0 0 16px;
+    .term-note { color: #999; font-weight: 400; font-size: 0.88rem; }
+  }
+}
+
+.table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+
+    thead tr {
+      background: #f5f7fa;
+      th { padding: 10px 14px; text-align: right; color: #555; font-weight: 600; white-space: nowrap;
+        &:first-child { text-align: center; }
+      }
+    }
+
+    tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      &:last-child { border-bottom: none; }
+      &:hover { background: #fafbfc; }
+      td { padding: 9px 14px; text-align: right; &.year-col { text-align: center; color: #555; font-weight: 500; } }
+    }
+  }
+}
+
+.disclaimer {
+  margin-top: 40px;
+  padding: 16px 20px;
+  background: #f5f7fa;
+  border: 1px solid #dde3ec;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  color: #777;
+  line-height: 1.6;
+  strong { color: #555; }
+}
+
+.toggle-table-btn {
+  display: block;
+  margin: 14px auto 0;
+  padding: 8px 24px;
+  background: transparent;
+  border: 1px solid #106EBE;
+  color: #106EBE;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  &:hover { background: #106EBE; color: white; }
+}
+
+/* ─── Mobile ─── */
+
+@media (max-width: 600px) {
+  .calc-header {
+    padding: 11px 16px;
+    .header-brand { font-size: 0.95rem; }
+    .header-tools { gap: 12px; a { font-size: 0.8rem; } }
+  }
+
+  .calc-body {
+    padding: 20px 14px 48px;
+    h1 { font-size: 1.3rem; }
+    .subtitle { font-size: 0.86rem; margin-bottom: 18px; }
+  }
+
+  .inputs-panel {
+    padding: 14px;
+    overflow: hidden;
+    h2 { font-size: 0.88rem; margin-bottom: 10px; }
+    .section-divider { margin-top: 14px; padding-top: 12px; }
+  }
+
+  .field-group {
+    margin-bottom: 10px;
+    label { font-size: 0.76rem; }
+    select { font-size: 0.86rem; padding: 8px 8px; }
+  }
+
+  .input-prefix, .input-suffix {
+    span { padding: 0 8px; font-size: 0.82rem; height: 38px; }
+    input { padding: 9px 8px; font-size: 0.86rem; }
+  }
+
+  /*
+   * Down payment: two columns stay side by side.
+   * At 375px → (375 - 28px padding - 8px gap) / 2 = 169.5px per col.
+   * Span at 5px padding ≈ 20px wide; input gets ~147px. Fits.
+   */
+  .down-payment-row {
+    gap: 8px;
+
+    .input-prefix span,
+    .input-suffix span {
+      padding: 0 5px;
+      font-size: 0.78rem;
+      min-width: 18px;
+    }
+
+    input { min-width: 0; }
+  }
+
+  .payment-card {
+    padding: 14px 16px;
+
+    .payment-total {
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 10px;
+      .label { font-size: 0.82rem; }
+      .amount { font-size: 1.65rem; }
+    }
+
+    .breakdown-row { font-size: 0.82rem; }
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    .span-2 { grid-column: span 2; }
+  }
+
+  .stat-card {
+    padding: 11px 12px;
+    .stat-label { font-size: 0.72rem; }
+    .stat-value { font-size: 1rem; }
+    .stat-hint { font-size: 0.68rem; }
+  }
+
+  .investment-section { padding: 14px; }
+
+  .amort-section {
+    padding: 14px;
+    h2 { font-size: 0.86rem; }
+  }
+
+  .table-wrap table {
+    font-size: 0.74rem;
+    min-width: 400px;
+    thead tr th, tbody tr td { padding: 7px 8px; }
+  }
+
+  .breakeven-card { padding: 11px 13px; }
+  .disclaimer { margin-top: 24px; padding: 11px 13px; font-size: 0.72rem; }
+  .toggle-table-btn { font-size: 0.78rem; padding: 6px 16px; }
+}
+
+/* ─── Small phones (≤390px) ─── */
+
+@media (max-width: 390px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    .span-2 { grid-column: span 1; }
+  }
+
+  .calc-body { padding-left: 12px; padding-right: 12px; }
+}

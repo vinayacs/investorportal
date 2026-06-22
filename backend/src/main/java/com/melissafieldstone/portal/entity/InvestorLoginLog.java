@@ -21,6 +21,9 @@ public class InvestorLoginLog {
     private LocalDateTime loginTimestamp = LocalDateTime.now();
 
     private String ipAddress;
+    private String city;
+    private String country;
+    private String region;
 
     @Column(nullable = false)
     private String status;

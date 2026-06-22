@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Investor, Investment, LoginLog, MfaSetupTotp, MfaStatus } from '../models/investor.model';
+import { Investor, Investment, LoginLog, PageVisit, MfaSetupTotp, MfaStatus } from '../models/investor.model';
 
 const API = '/api';
 
@@ -41,6 +41,14 @@ export class InvestorService {
 
   getLoginLogs(): Observable<LoginLog[]> {
     return this.http.get<LoginLog[]>(`${API}/admin/login-logs`);
+  }
+
+  getVisitorLogs(): Observable<PageVisit[]> {
+    return this.http.get<PageVisit[]>(`${API}/admin/visitor-logs`);
+  }
+
+  getLocationStats(): Observable<any> {
+    return this.http.get<any>(`${API}/admin/location-stats`);
   }
 
   // Investment endpoints (admin)

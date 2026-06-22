@@ -6,11 +6,15 @@
       <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
       <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
       <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/mortgage-calculator">Mortgage Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-development-calculator">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-price-calculator">Land Price Calculator</a></li>
       <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login History</a></li>
+      <li><a routerLink="/admin/location-stats" routerLinkActive="active">Location Stats</a></li>
       <li><a routerLink="/admin/monitoring" routerLinkActive="active">Monitoring</a></li>
       <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+      <li><button class="logout-btn" (click)="logout()">Logout</button></li>
     </ul>
-    <button class="logout-btn" (click)="logout()">Logout</button>
   </nav>
 
   <main class="content">
@@ -48,7 +52,7 @@
     <div class="table-wrap">
       <table>
         <thead>
-          <tr><th>Log ID</th><th>Investor</th><th>Timestamp</th><th>IP Address</th><th>Action</th><th>Status</th><th>Failure Reason</th></tr>
+          <tr><th>Log ID</th><th>Investor</th><th>Timestamp</th><th>IP Address</th><th>Location</th><th>Action</th><th>Status</th><th>Failure Reason</th></tr>
         </thead>
         <tbody>
           @for (log of logs; track log.logId) {
@@ -57,9 +61,35 @@
               <td>{{ log.investorName ?? '—' }}</td>
               <td>{{ log.loginTimestamp | date:'medium' }}</td>
               <td>{{ log.ipAddress ?? '—' }}</td>
+              <td>{{ log.city && log.country ? log.city + ', ' + log.country : '—' }}</td>
               <td><span [class]="'badge action-' + (log.action || 'login').toLowerCase().replace('_','-')">{{ log.action || 'LOGIN' }}</span></td>
               <td><span [class]="'badge ' + log.status.toLowerCase()">{{ log.status }}</span></td>
               <td>{{ log.failureReason ?? '—' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Public Visitor Logs -->
+    <h2 class="section-title" style="margin-top:36px">Public Page Visits</h2>
+    <p class="subtitle">Anonymous visitors to public calculator pages (most recent 200).</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Page</th><th>Timestamp</th><th>IP Address</th><th>Location</th><th>Browser / OS</th></tr>
+        </thead>
+        <tbody>
+          @if (visitorLogs.length === 0) {
+            <tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px">No visits recorded yet.</td></tr>
+          }
+          @for (v of visitorLogs; track v.id) {
+            <tr>
+              <td><span class="badge action-login">{{ v.page }}</span></td>
+              <td>{{ v.visitedAt | date:'medium' }}</td>
+              <td>{{ v.ipAddress ?? '—' }}</td>
+              <td>{{ v.city && v.country ? v.city + ', ' + v.country : '—' }}</td>
+              <td class="ua-cell">{{ v.userAgent ?? '—' }}</td>
             </tr>
           }
         </tbody>

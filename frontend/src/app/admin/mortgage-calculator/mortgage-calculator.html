@@ -1,0 +1,277 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Admin Portal</div>
+    <ul>
+      <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
+      <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/mortgage-calculator" routerLinkActive="active">Mortgage Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-development-calculator" routerLinkActive="active">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-price-calculator" routerLinkActive="active">Land Price Calculator</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login History</a></li>
+      <li><a routerLink="/admin/location-stats" routerLinkActive="active">Location Stats</a></li>
+      <li><a routerLink="/admin/monitoring" routerLinkActive="active">Monitoring</a></li>
+      <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+      <li><button class="logout-btn" (click)="logout()">Logout</button></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <h1>Mortgage Calculator</h1>
+    <p class="subtitle">Estimate monthly payment, total interest, and investment return.</p>
+
+    <div class="calc-grid">
+      <!-- ─── Inputs ─── -->
+      <div class="inputs-panel">
+        <h2>Loan Details</h2>
+
+        <div class="field-group">
+          <label>Home Price</label>
+          <div class="input-prefix">
+            <span>$</span>
+            <input type="number" [(ngModel)]="homePrice" (ngModelChange)="onHomePriceChange()" min="0" />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Down Payment</label>
+          <div class="down-payment-row">
+            <div class="input-prefix">
+              <span>$</span>
+              <input type="number" [(ngModel)]="downPaymentDollar"
+                     (ngModelChange)="downMode='dollar'; onDownDollarChange()" min="0" />
+            </div>
+            <div class="input-suffix">
+              <input type="number" [(ngModel)]="downPaymentPct" step="0.5"
+                     (ngModelChange)="downMode='pct'; onDownPctChange()" min="0" max="100" />
+              <span>%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Interest Rate</label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="interestRate" (ngModelChange)="calculate()" step="0.125" min="0" max="30" />
+            <span>%</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Loan Term</label>
+          <select [(ngModel)]="loanTermYears" (ngModelChange)="calculate()">
+            @for (t of termOptions; track t) {
+              <option [value]="t">{{ t }} years</option>
+            }
+          </select>
+        </div>
+
+        <h2 class="section-divider">Monthly Costs</h2>
+
+        <div class="field-group">
+          <label>Property Tax Rate</label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="propertyTaxRate" (ngModelChange)="calculate()" step="0.1" min="0" max="10" />
+            <span>% / yr</span>
+          </div>
+          @if (result) {
+            <span class="hint">{{ fmt(result.monthlyTax) }}/mo</span>
+          }
+        </div>
+
+        <div class="field-group">
+          <label>Homeowners Insurance</label>
+          <div class="input-prefix">
+            <span>$</span>
+            <input type="number" [(ngModel)]="annualInsurance" (ngModelChange)="calculate()" min="0" />
+          </div>
+          <span class="hint">per year</span>
+        </div>
+
+        <div class="field-group">
+          <label>HOA Fee</label>
+          <div class="input-prefix">
+            <span>$</span>
+            <input type="number" [(ngModel)]="monthlyHOA" (ngModelChange)="calculate()" min="0" />
+          </div>
+          <span class="hint">per month</span>
+        </div>
+
+        <div class="field-group">
+          <label>PMI Rate</label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="pmiRate" (ngModelChange)="onPmiRateChange()" min="0" max="5" step="0.05" />
+            <span>% / yr</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>
+            Monthly PMI
+            @if (!pmiOverridden) {
+              <span class="auto-badge">auto</span>
+            }
+          </label>
+          <div class="input-prefix">
+            <span>$</span>
+            <input type="number" [(ngModel)]="pmiMonthly" (ngModelChange)="onPmiMonthlyChange()" min="0" [disabled]="!!result && !result.pmiApplies" />
+          </div>
+          @if (result) {
+            @if (!result.pmiApplies) {
+              <span class="hint pmi-waived">Not applied — down payment ≥ 20%</span>
+            } @else if (pmiOverridden) {
+              <span class="hint override-hint">
+                Overriding auto —
+                <button class="reset-link" (click)="resetPmi()">reset to auto</button>
+              </span>
+            } @else {
+              <span class="hint">Loan × {{ pmiRate }}% ÷ 12</span>
+            }
+          }
+        </div>
+
+      </div>
+
+      <!-- ─── Results ─── -->
+      @if (result) {
+        <div class="results-panel">
+          <div class="payment-card">
+            <div class="payment-total">
+              <span class="label">Total Monthly Payment</span>
+              <span class="amount">{{ fmt(result.totalMonthly) }}</span>
+            </div>
+            <div class="payment-breakdown">
+              <div class="breakdown-row">
+                <span>Principal & Interest</span>
+                <span>{{ fmt(result.monthlyPI) }}</span>
+              </div>
+              <div class="breakdown-row">
+                <span>Property Tax</span>
+                <span>{{ fmt(result.monthlyTax) }}</span>
+              </div>
+              <div class="breakdown-row">
+                <span>Insurance</span>
+                <span>{{ fmt(result.monthlyInsurance) }}</span>
+              </div>
+              @if (result.monthlyHOA > 0) {
+                <div class="breakdown-row">
+                  <span>HOA</span>
+                  <span>{{ fmt(result.monthlyHOA) }}</span>
+                </div>
+              }
+              @if (result.monthlyPMI > 0) {
+                <div class="breakdown-row">
+                  <span>PMI</span>
+                  <span>{{ fmt(result.monthlyPMI) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Loan Amount</div>
+              <div class="stat-value">{{ fmt(result.loanAmount) }}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Down Payment</div>
+              <div class="stat-value">{{ fmt(result.downPayment) }}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Interest</div>
+              <div class="stat-value accent-red">{{ fmt(result.totalInterest) }}</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Cost</div>
+              <div class="stat-value">{{ fmt(result.totalCost) }}</div>
+            </div>
+          </div>
+
+          <div class="investment-section">
+            <h2>Investment <span class="optional-label">(optional)</span></h2>
+            <div class="field-group">
+              <label>Expected Monthly Rent</label>
+              <div class="input-prefix">
+                <span>$</span>
+                <input type="number" [(ngModel)]="monthlyRent" (ngModelChange)="calculate()" min="0" />
+              </div>
+              <span class="hint">For cash-on-cash return</span>
+            </div>
+          </div>
+
+          @if (monthlyRent > 0 && result.cashOnCash !== null) {
+            <div class="stats-grid">
+              <div class="stat-card span-2">
+                <div class="stat-label">Annual Cash Flow</div>
+                <div class="stat-value" [class.accent-green]="result.annualCashFlow >= 0" [class.accent-red]="result.annualCashFlow < 0">
+                  {{ fmt(result.annualCashFlow) }}
+                </div>
+              </div>
+              <div class="stat-card span-2">
+                <div class="stat-label">Cash-on-Cash Return</div>
+                <div class="stat-value" [class.accent-green]="result.cashOnCash >= 0" [class.accent-red]="result.cashOnCash! < 0">
+                  {{ fmtDec(result.cashOnCash, 2) }}
+                </div>
+                <div class="stat-hint">Annual cash flow ÷ down payment</div>
+              </div>
+            </div>
+          }
+
+          @if (monthlyRent > 0 && result.annualCashFlow < 0) {
+            <div class="breakeven-card">
+              @if (result.breakEvenYears !== null) {
+                <div class="breakeven-main">
+                  Equity break-even: <strong>Year {{ result.breakEvenYears }}</strong>
+                </div>
+                <div class="breakeven-hint">Cumulative principal paid exceeds cumulative cash flow losses by year {{ result.breakEvenYears }}.</div>
+              } @else {
+                <div class="breakeven-main no-breakeven">No break-even within loan term</div>
+                <div class="breakeven-hint">Equity built never exceeds cumulative cash flow losses over {{ loanTermYears }} years.</div>
+              }
+            </div>
+          }
+
+          @if (result.amortTable.length > 0) {
+            <div class="amort-section">
+              <h2>Amortization Schedule <span class="term-note">({{ loanTermYears }}-year term)</span></h2>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Year</th>
+                      <th>Annual Payment</th>
+                      <th>Principal</th>
+                      <th>Interest</th>
+                      <th>Remaining Balance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (row of visibleRows; track row.year) {
+                      <tr>
+                        <td class="year-col">{{ row.year }}</td>
+                        <td>{{ fmt(row.payment) }}</td>
+                        <td class="accent-green">{{ fmt(row.principal) }}</td>
+                        <td class="accent-red">{{ fmt(row.interest) }}</td>
+                        <td>{{ fmt(row.balance) }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+              @if (result.amortTable.length > 5) {
+                <button class="toggle-table-btn" (click)="showFullTable = !showFullTable">
+                  {{ showFullTable ? 'Show Less' : 'Show All ' + result.amortTable.length + ' Years' }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <p class="disclaimer">
+      <strong>Disclaimer:</strong> Results are estimates based on the inputs provided and are intended for informational purposes only. This calculator does not constitute financial, tax, legal, or investment advice. Actual loan terms, interest rates, PMI requirements, property taxes, and insurance costs vary by lender, property, and jurisdiction. Consult a licensed financial advisor, mortgage professional, or attorney before making any investment or financing decisions.
+    </p>
+  </main>
+</div>

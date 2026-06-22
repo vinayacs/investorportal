@@ -6,11 +6,15 @@
       <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
       <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
       <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/mortgage-calculator">Mortgage Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-development-calculator">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-price-calculator">Land Price Calculator</a></li>
       <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login History</a></li>
+      <li><a routerLink="/admin/location-stats" routerLinkActive="active">Location Stats</a></li>
       <li><a routerLink="/admin/monitoring" routerLinkActive="active">Monitoring</a></li>
       <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+      <li><button class="logout-btn" (click)="logout()">Logout</button></li>
     </ul>
-    <button class="logout-btn" (click)="logout()">Logout</button>
   </nav>
 
   <main class="content">
@@ -151,7 +155,7 @@
             </thead>
             <tbody>
               @for (row of result.years; track row.year; let i = $index) {
-                <tr>
+                <tr [class.current-year-row]="row.year === currentYear">
                   <td class="year-cell">{{ row.year }}</td>
                   <td>{{ formatCurrency(row.landValue) }}</td>
                   <td>{{ formatCurrency(row.improvementValue) }}</td>
@@ -169,8 +173,229 @@
                   </td>
                 </tr>
               }
+              @if (result.projection) {
+                @for (row of result.projection.projectedYears; track row.year; let i = $index) {
+                  <tr class="projected-row">
+                    <td class="year-cell">
+                      {{ row.year }}
+                      <span class="est-badge">Est.</span>
+                    </td>
+                    <td>{{ formatCurrency(row.landValue) }}</td>
+                    <td>{{ formatCurrency(row.improvementValue) }}</td>
+                    <td class="appraised-val">{{ formatCurrency(row.appraisedValue) }}</td>
+                    <td>{{ formatCurrency(row.taxableValue) }}</td>
+                    <td>
+                      @if (i === 0) {
+                        <span [class]="changeClass(row.appraisedValue, result!.years[result!.years.length - 1].appraisedValue)"
+                              class="change-badge">
+                          {{ changePercent(row.appraisedValue, result!.years[result!.years.length - 1].appraisedValue) }}
+                        </span>
+                      } @else {
+                        <span [class]="changeClass(row.appraisedValue, result!.projection!.projectedYears[i-1].appraisedValue)"
+                              class="change-badge">
+                          {{ changePercent(row.appraisedValue, result!.projection!.projectedYears[i-1].appraisedValue) }}
+                        </span>
+                      }
+                    </td>
+                  </tr>
+                }
+                <tr class="projection-caption-row">
+                  <td colspan="6">
+                    <span class="projection-caption">
+                      CAGR {{ result.projection.cagrPct }}% &bull; based on
+                      {{ result.projection.basedOnYears[0] }}–{{ result.projection.basedOnYears[1] }} actuals
+                    </span>
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
+          <!-- Residential Estimate + ISD (Collin County SQLite comps) -->
+          @if (result.residentialEstimate) {
+            <div class="estimate-card">
+              <div class="estimate-header">
+                <div class="estimate-title-group">
+                  <span class="estimate-title">Residential Value Estimate</span>
+                  <span class="estimate-source">Based on {{ result.residentialEstimate.compsUsed }} comparable sales in same ZIP</span>
+                </div>
+                <div class="estimate-right">
+                  @if (result.schoolDistrict) {
+                    <span class="isd-badge">
+                      🏫 {{ result.schoolDistrict.name }}
+                      <span class="isd-premium">+{{ result.schoolDistrict.premiumPct }}% premium market</span>
+                    </span>
+                  }
+                  <span class="confidence-badge confidence-{{ result.residentialEstimate.confidence }}">
+                    {{ result.residentialEstimate.confidence | titlecase }} confidence
+                  </span>
+                </div>
+              </div>
+              <div class="estimate-values">
+                <div class="estimate-main">
+                  <span class="estimate-label">Estimated Market Value</span>
+                  <span class="estimate-value">{{ formatCurrency(result.residentialEstimate.estimatedValue) }}</span>
+                </div>
+                <div class="estimate-meta-row">
+                  <div class="estimate-meta-item">
+                    <span class="meta-label">Median $/sqft</span>
+                    <span class="meta-value">${{ result.residentialEstimate.medianPpsf }}/sqft</span>
+                  </div>
+                  <div class="estimate-meta-item">
+                    <span class="meta-label">Subject Size</span>
+                    <span class="meta-value">{{ result.residentialEstimate.subjectSqft.toLocaleString() }} sqft</span>
+                  </div>
+                  @if (result.propertyDetails?.beds) {
+                    <div class="estimate-meta-item">
+                      <span class="meta-label">Beds / Baths</span>
+                      <span class="meta-value">{{ result.propertyDetails!.beds }}bd / {{ result.propertyDetails!.baths }}ba</span>
+                    </div>
+                  }
+                  @if (result.propertyDetails?.yearBuilt) {
+                    <div class="estimate-meta-item">
+                      <span class="meta-label">Year Built</span>
+                      <span class="meta-value">{{ result.propertyDetails!.yearBuilt }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+              <p class="estimate-disclaimer">Estimate based on CCAD market values of comparable properties — not a formal appraisal. Actual sale prices may vary.</p>
+            </div>
+          }
+
+          <!-- Comparable Sales Table -->
+          @if (result.comps && result.comps.length > 0) {
+            <div class="comps-card">
+              <div class="comps-header">
+                <span class="comps-title">Comparable Sales</span>
+                <span class="comps-subtitle">Similar properties in same ZIP · CCAD market values</span>
+              </div>
+              <table class="comps-table">
+                <thead>
+                  <tr>
+                    <th>Address</th>
+                    <th>Sqft</th>
+                    <th>Bed/Bath</th>
+                    <th>Year Built</th>
+                    <th>Market Value</th>
+                    <th>$/sqft</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (comp of result.comps; track comp.address) {
+                    <tr>
+                      <td class="comp-address">{{ comp.address }}</td>
+                      <td>{{ comp.sqft.toLocaleString() }}</td>
+                      <td>{{ comp.beds ?? '—' }} / {{ comp.baths ?? '—' }}</td>
+                      <td>{{ comp.yearBuilt ?? '—' }}</td>
+                      <td>{{ formatCurrency(comp.marketValue) }}</td>
+                      <td class="comp-ppsf">${{ comp.pricePerSqft }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              <p class="comps-source">Source: Collin CAD parcel data · Values are CAD market assessments, not recorded sale prices</p>
+            </div>
+          }
+
+          @if (result.neighborhoods.length > 0) {
+            @for (nb of result.neighborhoods; track nb.radiusMiles) {
+              <div class="neighborhood-card" [class.neighborhood-card-divider]="!$first">
+                <div class="neighborhood-header">
+                  <span class="neighborhood-title">Neighborhood Signals</span>
+                  <span class="neighborhood-radius">within {{ nb.radiusMiles }} miles</span>
+                </div>
+                <div class="neighborhood-grid">
+                  <div class="nbh-item">
+                    <span class="nbh-icon">&#127979;</span>
+                    <span class="nbh-count">{{ nb.amenities.schools }}</span>
+                    <span class="nbh-label">Schools</span>
+                  </div>
+                  <div class="nbh-item">
+                    <span class="nbh-icon">&#127794;</span>
+                    <span class="nbh-count">{{ nb.amenities.parks }}</span>
+                    <span class="nbh-label">Parks</span>
+                  </div>
+                  <div class="nbh-item">
+                    <span class="nbh-icon">&#128717;</span>
+                    <span class="nbh-count">{{ nb.amenities.grocery }}</span>
+                    <span class="nbh-label">Grocery</span>
+                  </div>
+                  <div class="nbh-item">
+                    <span class="nbh-icon">&#127973;</span>
+                    <span class="nbh-count">{{ nb.amenities.medical }}</span>
+                    <span class="nbh-label">Medical</span>
+                  </div>
+                  <div class="nbh-item">
+                    <span class="nbh-icon">&#128649;</span>
+                    <span class="nbh-count">{{ nb.amenities.transitStations }}</span>
+                    <span class="nbh-label">Transit</span>
+                  </div>
+                  <div class="nbh-item">
+                    <span class="nbh-icon">&#127859;</span>
+                    <span class="nbh-count">{{ nb.amenities.restaurants }}</span>
+                    <span class="nbh-label">Dining</span>
+                  </div>
+                  <div class="nbh-item" [class.nbh-highlight]="nb.amenities.newConstruction > 0">
+                    <span class="nbh-icon">&#127959;</span>
+                    <span class="nbh-count">{{ nb.amenities.newConstruction }}</span>
+                    <span class="nbh-label">New Construction</span>
+                  </div>
+                </div>
+                @if ($last) {
+                  <p class="nbh-source">Source: OpenStreetMap via Overpass API</p>
+                }
+              </div>
+            }
+          }
+
+          @if (result.marketContext) {
+            <div class="market-context-card">
+              <div class="market-context-header">
+                <div>
+                  <span class="market-context-title">Market Context</span>
+                  <span class="market-context-zip">ZIP {{ result.marketContext.zipCode }}</span>
+                </div>
+                @if (result.marketContext.zipCagrPct !== null) {
+                  <div class="market-cagr-badge"
+                       [class.mc-up]="result.marketContext.zipCagrPct >= 0"
+                       [class.mc-down]="result.marketContext.zipCagrPct < 0">
+                    {{ result.marketContext.zipCagrPct >= 0 ? '+' : '' }}{{ result.marketContext.zipCagrPct }}% area CAGR
+                    @if (result.projection) {
+                      <span class="mc-vs">vs {{ result.projection.cagrPct >= 0 ? '+' : '' }}{{ result.projection.cagrPct }}% this property</span>
+                    }
+                  </div>
+                }
+              </div>
+              <table class="market-table">
+                <thead>
+                  <tr>
+                    <th>Year</th>
+                    <th>ZIP Median Home Value</th>
+                    <th>YoY Change</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of result.marketContext.medianHomeValueTrend; track row.year; let i = $index) {
+                    <tr>
+                      <td class="mc-year">{{ row.year }}</td>
+                      <td class="mc-value">{{ formatCurrency(row.medianHomeValue) }}</td>
+                      <td>
+                        @if (i > 0) {
+                          <span [class]="changeClass(row.medianHomeValue, result!.marketContext!.medianHomeValueTrend[i-1].medianHomeValue)"
+                                class="change-badge">
+                            {{ changePercent(row.medianHomeValue, result!.marketContext!.medianHomeValueTrend[i-1].medianHomeValue) }}
+                          </span>
+                        } @else {
+                          <span class="change-badge baseline">Baseline</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+              <p class="mc-source">Source: US Census Bureau ACS 5-Year Estimates (B25077) &bull; Data lags ~1–2 years</p>
+            </div>
+          }
         </div>
       }
     }

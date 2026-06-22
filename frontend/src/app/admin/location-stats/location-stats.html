@@ -1,0 +1,113 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Admin Portal</div>
+    <ul>
+      <li><a routerLink="/admin" routerLinkActive="active" [routerLinkActiveOptions]="{exact:true}">Dashboard</a></li>
+      <li><a routerLink="/admin/investors" routerLinkActive="active">Investors</a></li>
+      <li><a routerLink="/admin/investments" routerLinkActive="active">Investments</a></li>
+      <li><a routerLink="/admin/property-analysis" routerLinkActive="active">Property Analysis</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/mortgage-calculator" routerLinkActive="active">Mortgage Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-development-calculator" routerLinkActive="active">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/admin/land-price-calculator" routerLinkActive="active">Land Price Calculator</a></li>
+      <li><a routerLink="/admin/login-logs" routerLinkActive="active">Login History</a></li>
+      <li><a routerLink="/admin/location-stats" routerLinkActive="active">Location Stats</a></li>
+      <li><a routerLink="/admin/monitoring" routerLinkActive="active">Monitoring</a></li>
+      <li><a routerLink="/admin/settings" routerLinkActive="active">Settings</a></li>
+      <li><button class="logout-btn" (click)="logout()">Logout</button></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <h1>Location Stats</h1>
+    <p class="subtitle">Geographic breakdown of public page visits and investor logins.</p>
+
+    @if (error) {
+      <div class="error-msg">{{ error }}</div>
+    }
+
+    @if (loading) {
+      <div class="loading-msg">Loading...</div>
+    }
+
+    @if (stats) {
+      <!-- Summary Cards -->
+      <div class="summary-grid">
+        <div class="stat-card">
+          <div class="stat-label">Public Page Visits</div>
+          <div class="stat-value">{{ stats.totalPageVisits | number }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Login Events</div>
+          <div class="stat-value">{{ stats.totalLoginEvents | number }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Unique Countries</div>
+          <div class="stat-value accent-blue">{{ stats.uniqueCountries }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Unique Cities</div>
+          <div class="stat-value accent-blue">{{ stats.uniqueCities }}</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h2>Top Countries</h2>
+          @if (stats.topCountries.length > 0) {
+            <canvas id="countriesCanvas"></canvas>
+          } @else {
+            <p class="empty">No country data yet.</p>
+          }
+        </div>
+
+        <div class="chart-card">
+          <h2>Page Breakdown</h2>
+          @if (stats.pageBreakdown.length > 0) {
+            <div class="donut-wrap">
+              <canvas id="pagesCanvas"></canvas>
+            </div>
+          } @else {
+            <p class="empty">No page visit data yet.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Cities Chart -->
+      <div class="chart-card wide">
+        <h2>Top Cities</h2>
+        @if (stats.topCities.length > 0) {
+          <canvas id="citiesCanvas"></canvas>
+        } @else {
+          <p class="empty">No city data yet.</p>
+        }
+      </div>
+
+      <!-- Country Table -->
+      <div class="table-card">
+        <h2>Country Breakdown</h2>
+        <table>
+          <thead>
+            <tr><th>Country</th><th>Visits</th><th>Share</th></tr>
+          </thead>
+          <tbody>
+            @for (c of stats.topCountries; track c.name) {
+              <tr>
+                <td>{{ c.name }}</td>
+                <td>{{ c.count }}</td>
+                <td>
+                  <div class="bar-wrap">
+                    <div class="bar-fill"
+                         [style.width.%]="(c.count / (stats.topCountries[0]?.count || 1)) * 100">
+                    </div>
+                    <span>{{ ((c.count / (stats.totalPageVisits + stats.totalLoginEvents)) * 100) | number:'1.1-1' }}%</span>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </main>
+</div>

@@ -1,0 +1,242 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Investor Portal</div>
+    <ul>
+      <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+      <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
+      <li><a routerLink="/investments" routerLinkActive="active">My Investments</a></li>
+      <li class="nav-section-header">Realty Calculators</li>
+      <li class="sub-nav-item"><a routerLink="/investor/mortgage-calculator" routerLinkActive="active">Mortgage Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/investor/land-development-calculator" routerLinkActive="active">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/investor/land-price-calculator" routerLinkActive="active">Land Price Calculator</a></li>
+      <li><button class="logout-btn" (click)="logout()">Logout</button></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <h1>Land Development Calculator</h1>
+    <p class="subtitle">Estimate total project cost, yield, and development profit.</p>
+
+    <div class="calc-grid">
+      <!-- ─── Inputs ─── -->
+      <div class="inputs-panel">
+
+        <h2>Land</h2>
+
+        <div class="field-group">
+          <label>Land Area</label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="landAcres" (ngModelChange)="onLandAcresChange()" min="0" step="0.1" />
+            <span>acres</span>
+          </div>
+          @if (result) {
+            <span class="hint">{{ result.landSqft.toLocaleString() }} sqft</span>
+          }
+        </div>
+
+        <div class="field-group">
+          <label>Land Cost</label>
+          <div class="mode-row">
+            <select [(ngModel)]="landCostMode" (ngModelChange)="calculate()" class="mode-select">
+              <option value="per_acre">per acre</option>
+              <option value="per_sqft">per sqft</option>
+            </select>
+            <div class="input-prefix input-grow">
+              <span>$</span>
+              <input type="number" [(ngModel)]="landCostValue" (ngModelChange)="calculate()" min="0" />
+            </div>
+          </div>
+          @if (result) {
+            <span class="hint">Land cost: {{ fmt(result.landCost) }}</span>
+          }
+        </div>
+
+        <h2 class="section-divider">Horizontal Development</h2>
+        <p class="section-note">Site work, utilities, roads, infrastructure</p>
+
+        <div class="field-group">
+          <label>Cost Basis</label>
+          <div class="mode-row">
+            <select [(ngModel)]="horizMode" (ngModelChange)="calculate()" class="mode-select">
+              <option value="per_acre">per acre</option>
+              <option value="per_built_sqft">per built sqft</option>
+              <option value="total">total $</option>
+            </select>
+            <div class="input-prefix input-grow">
+              <span>$</span>
+              <input type="number" [(ngModel)]="horizValue" (ngModelChange)="calculate()" min="0" />
+            </div>
+          </div>
+          @if (result) {
+            <span class="hint">Horizontal cost: {{ fmt(result.horizCost) }}</span>
+          }
+        </div>
+
+        <h2 class="section-divider">Vertical Development</h2>
+        <p class="section-note">Building construction costs</p>
+
+        <div class="field-group">
+          <label>
+            Built Area
+            @if (!builtSqftOverridden) {
+              <span class="auto-badge">auto</span>
+            }
+          </label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="builtSqft" (ngModelChange)="onBuiltSqftChange()" min="0" />
+            <span>sqft</span>
+          </div>
+          @if (builtSqftOverridden) {
+            <span class="hint override-hint">
+              Overriding auto ({{ (landAcres * BUILT_SQFT_PER_ACRE).toLocaleString() }} sqft) —
+              <button class="reset-link" (click)="resetBuiltSqft()">reset to auto</button>
+            </span>
+          } @else {
+            <span class="hint">{{ BUILT_SQFT_PER_ACRE.toLocaleString() }} sqft × {{ landAcres }} acres</span>
+          }
+        </div>
+
+        <div class="field-group">
+          <label>Construction Cost</label>
+          <div class="mode-row">
+            <select [(ngModel)]="vertMode" (ngModelChange)="calculate()" class="mode-select">
+              <option value="per_built_sqft">per built sqft</option>
+              <option value="total">total $</option>
+            </select>
+            <div class="input-prefix input-grow">
+              <span>$</span>
+              <input type="number" [(ngModel)]="vertValue" (ngModelChange)="calculate()" min="0" />
+            </div>
+          </div>
+          @if (result) {
+            <span class="hint">Vertical cost: {{ fmt(result.vertCost) }}</span>
+          }
+        </div>
+
+        <h2 class="section-divider">Revenue & Returns</h2>
+
+        <div class="field-group">
+          <label>Annual Rent</label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="rentPerSqft" (ngModelChange)="calculate()" min="0" step="0.5" />
+            <span>$ / sqft / yr</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Vacancy Rate</label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="vacancyRate" (ngModelChange)="calculate()" min="0" max="100" step="0.5" />
+            <span>%</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Operating Expenses</label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="opExpenseRate" (ngModelChange)="calculate()" min="0" max="100" step="1" />
+            <span>% of Eff. Gross Income</span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label>Exit Cap Rate</label>
+          <div class="input-suffix">
+            <input type="number" [(ngModel)]="exitCapRate" (ngModelChange)="calculate()" min="0.1" max="30" step="0.25" />
+            <span>%</span>
+          </div>
+          <span class="hint">Used to estimate stabilized value</span>
+        </div>
+
+      </div>
+
+      <!-- ─── Results ─── -->
+      @if (result) {
+        <div class="results-panel">
+
+          <div class="total-card">
+            <div class="total-header">
+              <span class="label">Total Project Cost</span>
+              <span class="amount">{{ fmt(result.totalCost) }}</span>
+            </div>
+            <div class="total-sub">
+              <span>{{ fmt(result.costPerBuiltSqft) }} / built sqft</span>
+              <span>FAR {{ fmtDec(result.far, 2) }}</span>
+            </div>
+          </div>
+
+          <div class="breakdown-card">
+            <h3>Cost Breakdown</h3>
+            <div class="cost-bar-wrap">
+              <div class="cost-bar">
+                <div class="bar-land"  [style.width]="result.landPct  + '%'" title="Land"></div>
+                <div class="bar-horiz" [style.width]="result.horizPct + '%'" title="Horizontal"></div>
+                <div class="bar-vert"  [style.width]="result.vertPct  + '%'" title="Vertical"></div>
+              </div>
+              <div class="bar-legend">
+                <span class="leg-land">Land</span>
+                <span class="leg-horiz">Horizontal</span>
+                <span class="leg-vert">Vertical</span>
+              </div>
+            </div>
+            <div class="breakdown-rows">
+              <div class="brow">
+                <div class="brow-left"><span class="dot dot-land"></span><span class="brow-label">Land</span></div>
+                <div class="brow-right"><span class="brow-amount">{{ fmt(result.landCost) }}</span><span class="brow-pct">{{ fmtDec(result.landPct, 1) }}%</span></div>
+              </div>
+              <div class="brow">
+                <div class="brow-left"><span class="dot dot-horiz"></span><span class="brow-label">Horizontal Dev</span></div>
+                <div class="brow-right"><span class="brow-amount">{{ fmt(result.horizCost) }}</span><span class="brow-pct">{{ fmtDec(result.horizPct, 1) }}%</span></div>
+              </div>
+              <div class="brow">
+                <div class="brow-left"><span class="dot dot-vert"></span><span class="brow-label">Vertical Dev</span></div>
+                <div class="brow-right"><span class="brow-amount">{{ fmt(result.vertCost) }}</span><span class="brow-pct">{{ fmtDec(result.vertPct, 1) }}%</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Gross Annual Rent</div>
+              <div class="stat-value">{{ fmt(result.grossAnnualRent) }}</div>
+              <div class="stat-hint">{{ fmtDec(result.grossYield) }}% gross yield</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Net Operating Income</div>
+              <div class="stat-value">{{ fmt(result.noi) }}</div>
+              <div class="stat-hint">{{ fmtDec(result.netYield) }}% net yield</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Effective Gross Income (after vacancy)</div>
+              <div class="stat-value">{{ fmt(result.egi) }}</div>
+              <div class="stat-hint">{{ vacancyRate }}% vacancy applied</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Stabilized Value</div>
+              <div class="stat-value">{{ fmt(result.stabilizedValue) }}</div>
+              <div class="stat-hint">NOI ÷ {{ fmtDec(exitCapRate) }}% cap rate</div>
+            </div>
+            <div class="stat-card span-2"
+                 [class.profit-pos]="result.devProfit >= 0"
+                 [class.profit-neg]="result.devProfit < 0">
+              <div class="stat-label">Development Profit</div>
+              <div class="stat-value large"
+                   [class.accent-green]="result.devProfit >= 0"
+                   [class.accent-red]="result.devProfit < 0">
+                {{ fmt(result.devProfit) }}
+              </div>
+              <div class="stat-hint">
+                {{ fmtDec(result.devMargin, 1) }}% margin &nbsp;·&nbsp; Stabilized Value − Total Cost
+              </div>
+            </div>
+          </div>
+
+        </div>
+      }
+    </div>
+
+    <p class="disclaimer">
+      <strong>Disclaimer:</strong> Results are estimates based on the inputs provided and are intended for informational purposes only. This calculator does not constitute financial, tax, legal, or investment advice. Actual development costs, timelines, market values, and regulatory requirements vary by location and project. Consult a licensed financial advisor, real estate developer, or attorney before making any investment or development decisions.
+    </p>
+  </main>
+</div>

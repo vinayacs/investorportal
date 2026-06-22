@@ -31,7 +31,6 @@ public class AdminController {
     private final AuthService authService;
     private final RestTemplate restTemplate;
     private final ScraperLogRepository scraperLogRepo;
-
     @Value("${app.property-agent-url:http://property-agent:8000}")
     private String propertyAgentUrl;
     private final MfaService mfaService;
@@ -73,6 +72,16 @@ public class AdminController {
     @GetMapping("/login-logs")
     public ResponseEntity<List<LoginLogResponse>> getLoginLogs() {
         return ResponseEntity.ok(adminService.getLoginLogs());
+    }
+
+    @GetMapping("/visitor-logs")
+    public ResponseEntity<List<PageVisitResponse>> getVisitorLogs() {
+        return ResponseEntity.ok(adminService.getVisitorLogs());
+    }
+
+    @GetMapping("/location-stats")
+    public ResponseEntity<LocationStatsResponse> getLocationStats() {
+        return ResponseEntity.ok(adminService.getLocationStats());
     }
 
     @GetMapping("/investments")
@@ -137,22 +146,20 @@ public class AdminController {
             @RequestParam(required = false) String propertyId,
             @RequestParam(required = false) String county) {
 
+        boolean byId = propertyId != null && county != null;
+        String searchType = byId ? "propertyId" : "address";
+        String input = byId ? propertyId + " (" + county + ")" : address;
+
         long start = System.currentTimeMillis();
         Map<String, Object> result;
-        String searchType;
-        String input;
 
-        if (propertyId != null && county != null) {
-            searchType = "propertyId";
-            input = propertyId + " (" + county + ")";
+        if (byId) {
             String url = propertyAgentUrl + "/analyze-by-id";
             @SuppressWarnings("unchecked")
             Map<String, Object> r = restTemplate.postForObject(url,
                     Map.of("propertyId", propertyId, "county", county), Map.class);
             result = r;
         } else {
-            searchType = "address";
-            input = address;
             String url = propertyAgentUrl + "/analyze";
             @SuppressWarnings("unchecked")
             Map<String, Object> r = restTemplate.postForObject(url, Map.of("address", address), Map.class);

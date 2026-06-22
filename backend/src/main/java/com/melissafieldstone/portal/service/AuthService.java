@@ -26,9 +26,10 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
     private final MfaService mfaService;
+    private final GeoLocationService geoLocationService;
 
     public LoginResponse login(LoginRequest request, HttpServletRequest httpRequest) {
-        String ip = httpRequest.getRemoteAddr();
+        String ip = extractClientIp(httpRequest);
 
         // Try investor login
         var credOpt = credentialsRepo.findByUsername(request.getUsername());
@@ -184,13 +185,25 @@ public class AuthService {
     }
 
     private void logAttempt(Investor investor, String ip, String status, String reason, String action) {
+        GeoLocationService.GeoLocation geo = geoLocationService.lookup(ip);
         InvestorLoginLog log = new InvestorLoginLog();
         log.setInvestor(investor);
         log.setIpAddress(ip);
+        log.setCity(geo.city());
+        log.setCountry(geo.country());
+        log.setRegion(geo.region());
         log.setStatus(status);
         log.setFailureReason(reason);
         log.setAction(action);
         log.setLoginTimestamp(LocalDateTime.now());
         loginLogRepo.save(log);
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        String xff = request.getHeader("X-Forwarded-For");
+        if (xff != null && !xff.isBlank()) return xff.split(",")[0].trim();
+        String realIp = request.getHeader("X-Real-IP");
+        if (realIp != null && !realIp.isBlank()) return realIp.trim();
+        return request.getRemoteAddr();
     }
 }

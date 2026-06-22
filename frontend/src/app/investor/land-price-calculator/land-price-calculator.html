@@ -1,0 +1,21 @@
+<div class="layout">
+  <nav class="sidebar">
+    <div class="logo">Investor Portal</div>
+    <ul>
+      <li><a routerLink="/dashboard" routerLinkActive="active">Dashboard</a></li>
+      <li><a routerLink="/profile" routerLinkActive="active">My Profile</a></li>
+      <li><a routerLink="/investments" routerLinkActive="active">My Investments</a></li>
+      <li class="nav-section-header">Realty Calculators</li>
+      <li class="sub-nav-item"><a routerLink="/investor/mortgage-calculator" routerLinkActive="active">Mortgage Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/investor/land-development-calculator" routerLinkActive="active">Land Dev Calculator</a></li>
+      <li class="sub-nav-item"><a routerLink="/investor/land-price-calculator" routerLinkActive="active">Land Price Calculator</a></li>
+      <li><button class="logout-btn" (click)="logout()">Logout</button></li>
+    </ul>
+  </nav>
+
+  <main class="content">
+    <h1>Land Price Calculator</h1>
+    <p class="subtitle">Calculate total land price and per-unit rates across all common area units.</p>
+    <app-land-price-calculator />
+  </main>
+</div>

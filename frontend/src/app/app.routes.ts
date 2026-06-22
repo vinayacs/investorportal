@@ -4,6 +4,9 @@ import { authGuard, adminGuard } from './shared/guards/auth.guard';
 export const routes: Routes = [
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: 'login', loadComponent: () => import('./auth/login/login').then(m => m.LoginComponent) },
+  { path: 'mortgage-calculator', loadComponent: () => import('./public/mortgage-calculator/mortgage-calculator').then(m => m.MortgageCalculatorComponent) },
+  { path: 'land-development-calculator', loadComponent: () => import('./public/land-development-calculator/land-development-calculator').then(m => m.LandDevelopmentCalculatorComponent) },
+  { path: 'land-price-calculator', loadComponent: () => import('./public/land-price-calculator/land-price-calculator').then(m => m.PublicLandPriceCalculatorComponent) },
   { path: 'forgot-password', loadComponent: () => import('./auth/forgot-password/forgot-password').then(m => m.ForgotPasswordComponent) },
   { path: 'reset-password', loadComponent: () => import('./auth/reset-password/reset-password').then(m => m.ResetPasswordComponent) },
   { path: 'mfa-verify', loadComponent: () => import('./auth/mfa-verify/mfa-verify').then(m => m.MfaVerifyComponent) },
@@ -15,9 +18,16 @@ export const routes: Routes = [
   { path: 'admin/investments', canActivate: [adminGuard], loadComponent: () => import('./admin/investment-list/investment-list').then(m => m.InvestmentListComponent) },
   { path: 'admin/investments/:id', canActivate: [adminGuard], loadComponent: () => import('./admin/investment-detail/investment-detail').then(m => m.InvestmentDetailComponent) },
   { path: 'admin/property-analysis', canActivate: [adminGuard], loadComponent: () => import('./admin/property-analysis/property-analysis').then(m => m.PropertyAnalysisComponent) },
+  { path: 'admin/mortgage-calculator', canActivate: [adminGuard], loadComponent: () => import('./admin/mortgage-calculator/mortgage-calculator').then(m => m.AdminMortgageCalculatorComponent) },
+  { path: 'admin/land-development-calculator', canActivate: [adminGuard], loadComponent: () => import('./admin/land-development-calculator/land-development-calculator').then(m => m.AdminLandDevelopmentCalculatorComponent) },
+  { path: 'admin/land-price-calculator', canActivate: [adminGuard], loadComponent: () => import('./admin/land-price-calculator/land-price-calculator').then(m => m.AdminLandPriceCalculatorComponent) },
   { path: 'admin/login-logs', canActivate: [adminGuard], loadComponent: () => import('./admin/login-logs/login-logs').then(m => m.LoginLogsComponent) },
+  { path: 'admin/location-stats', canActivate: [adminGuard], loadComponent: () => import('./admin/location-stats/location-stats').then(m => m.LocationStatsComponent) },
   { path: 'admin/monitoring', canActivate: [adminGuard], loadComponent: () => import('./admin/monitoring/monitoring').then(m => m.MonitoringComponent) },
   { path: 'admin/settings', canActivate: [adminGuard], loadComponent: () => import('./admin/settings/settings').then(m => m.AdminSettingsComponent) },
   { path: 'investments', canActivate: [authGuard], loadComponent: () => import('./investor/investments/investments').then(m => m.InvestmentsComponent) },
+  { path: 'investor/mortgage-calculator', canActivate: [authGuard], loadComponent: () => import('./investor/mortgage-calculator/mortgage-calculator').then(m => m.InvestorMortgageCalculatorComponent) },
+  { path: 'investor/land-development-calculator', canActivate: [authGuard], loadComponent: () => import('./investor/land-development-calculator/land-development-calculator').then(m => m.InvestorLandDevelopmentCalculatorComponent) },
+  { path: 'investor/land-price-calculator', canActivate: [authGuard], loadComponent: () => import('./investor/land-price-calculator/land-price-calculator').then(m => m.InvestorLandPriceCalculatorComponent) },
   { path: '**', redirectTo: 'login' }
 ];

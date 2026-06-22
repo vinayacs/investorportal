@@ -1,0 +1,34 @@
+.calc-page {
+  min-height: 100vh;
+  background: #f0f4f8;
+}
+
+.calc-header {
+  background: #106EBE;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 32px;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .header-brand { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.02em; }
+
+  .header-tools {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+
+    a { color: rgba(255,255,255,0.8); text-decoration: none; font-size: 0.88rem; &:hover { color: white; } }
+    .signin-link { color: white; font-weight: 600; }
+  }
+}
+
+.calc-body {
+  padding: 40px 32px;
+  max-width: 640px;
+
+  h1 { color: #106EBE; margin: 0 0 6px; font-size: 1.6rem; }
+  .subtitle { color: #666; font-size: 0.9rem; margin: 0 0 24px; }
+}

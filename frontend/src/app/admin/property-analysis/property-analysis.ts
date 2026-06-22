@@ -20,6 +20,79 @@ interface AppraisalYear {
   taxableValue: number | null;
 }
 
+interface ProjectedYear {
+  year: number;
+  appraisedValue: number;
+  landValue: number | null;
+  improvementValue: number | null;
+  taxableValue: number | null;
+}
+
+interface Projection {
+  cagrPct: number;
+  basedOnYears: [number, number];
+  projectedYears: ProjectedYear[];
+}
+
+interface ZipYearData {
+  year: number;
+  medianHomeValue: number;
+}
+
+interface MarketContext {
+  zipCode: string;
+  medianHomeValueTrend: ZipYearData[];
+  zipCagrPct: number | null;
+}
+
+interface NeighborhoodAmenities {
+  schools: number;
+  parks: number;
+  grocery: number;
+  medical: number;
+  transitStations: number;
+  restaurants: number;
+  newConstruction: number;
+}
+
+interface Neighborhood {
+  radiusMiles: number;
+  lat: number;
+  lon: number;
+  amenities: NeighborhoodAmenities;
+}
+
+interface PropertyDetails {
+  sqft: number | null;
+  beds: number | null;
+  baths: number | null;
+  yearBuilt: number | null;
+}
+
+interface Comp {
+  address: string;
+  sqft: number;
+  beds: number | null;
+  baths: number | null;
+  yearBuilt: number | null;
+  marketValue: number;
+  pricePerSqft: number;
+}
+
+interface ResidentialEstimate {
+  estimatedValue: number;
+  medianPpsf: number;
+  subjectSqft: number;
+  compsUsed: number;
+  confidence: 'high' | 'medium' | 'low';
+}
+
+interface SchoolDistrict {
+  name: string;
+  premiumPct: number;
+  zip: string;
+}
+
 interface AnalysisResult {
   supported: boolean;
   county: string;
@@ -31,6 +104,13 @@ interface AnalysisResult {
   ownerName: string | null;
   mailingAddress: string | null;
   years: AppraisalYear[];
+  projection: Projection | null;
+  neighborhoods: Neighborhood[];
+  marketContext: MarketContext | null;
+  propertyDetails?: PropertyDetails | null;
+  comps?: Comp[];
+  residentialEstimate?: ResidentialEstimate | null;
+  schoolDistrict?: SchoolDistrict | null;
   message?: string;
 }
 
@@ -39,7 +119,7 @@ const COUNTY_PORTALS: Record<string, string> = {
   'Dallas':      'https://www.dallascad.org',
   'Tarrant':     'https://www.tad.org',
   'Denton':      'https://www.dentoncad.com',
-  'Collin':      'https://www.collincad.org',
+  'Collin':      'https://esearch.collincad.org',
   'Fort Bend':   'https://www.fbcad.org',
   'Montgomery':  'https://mcad-tx.org',
   'Williamson':  'https://www.wcad.org',
@@ -76,6 +156,7 @@ export class PropertyAnalysisComponent implements OnDestroy {
   loading = false;
   error = '';
   result: AnalysisResult | null = null;
+  readonly currentYear = new Date().getFullYear();
 
   private chart: Chart | null = null;
 
@@ -116,6 +197,7 @@ export class PropertyAnalysisComponent implements OnDestroy {
 
     this.http.get<AnalysisResult>('/api/admin/property-analysis', { params }).subscribe({
       next: data => {
+        data.years = [...data.years].sort((a, b) => a.year - b.year);
         this.result = data;
         this.loading = false;
         this.cdr.detectChanges();
@@ -136,18 +218,40 @@ export class PropertyAnalysisComponent implements OnDestroy {
     this.destroyChart();
 
     const sorted = [...(this.result?.years ?? [])].sort((a, b) => a.year - b.year);
-    const labels = sorted.map(y => String(y.year));
+    const proj = this.result?.projection?.projectedYears ?? [];
+    const allLabels = [
+      ...sorted.map(y => String(y.year)),
+      ...proj.map(y => String(y.year)),
+    ];
 
-    const fmt = (v: number | null) => v ?? null;
+    // Junction: last actual value repeated as first point of projected dataset
+    const lastActual = sorted[sorted.length - 1];
+    const nullActual = (n: number) => Array(n).fill(null);
+
+    const projAppr: (number | null)[] = [
+      ...nullActual(sorted.length - 1),
+      lastActual?.appraisedValue ?? null,
+      ...proj.map(y => y.appraisedValue),
+    ];
+    const projLand: (number | null)[] = [
+      ...nullActual(sorted.length - 1),
+      lastActual?.landValue ?? null,
+      ...proj.map(y => y.landValue),
+    ];
+    const projImpr: (number | null)[] = [
+      ...nullActual(sorted.length - 1),
+      lastActual?.improvementValue ?? null,
+      ...proj.map(y => y.improvementValue),
+    ];
 
     this.chart = new Chart(this.chartCanvas.nativeElement, {
       type: 'line',
       data: {
-        labels,
+        labels: allLabels,
         datasets: [
           {
             label: 'Appraised Value',
-            data: sorted.map(y => fmt(y.appraisedValue)),
+            data: [...sorted.map(y => y.appraisedValue), ...nullActual(proj.length)],
             borderColor: '#003366',
             backgroundColor: 'rgba(0,51,102,0.08)',
             borderWidth: 2.5,
@@ -158,7 +262,7 @@ export class PropertyAnalysisComponent implements OnDestroy {
           },
           {
             label: 'Land Value',
-            data: sorted.map(y => fmt(y.landValue)),
+            data: [...sorted.map(y => y.landValue), ...nullActual(proj.length)],
             borderColor: '#2e7d32',
             backgroundColor: 'rgba(46,125,50,0.07)',
             borderWidth: 2,
@@ -169,7 +273,7 @@ export class PropertyAnalysisComponent implements OnDestroy {
           },
           {
             label: 'Improvement Value',
-            data: sorted.map(y => fmt(y.improvementValue)),
+            data: [...sorted.map(y => y.improvementValue), ...nullActual(proj.length)],
             borderColor: '#e65100',
             backgroundColor: 'rgba(230,81,0,0.07)',
             borderWidth: 2,
@@ -178,6 +282,44 @@ export class PropertyAnalysisComponent implements OnDestroy {
             tension: 0.3,
             fill: false,
           },
+          ...(proj.length ? [
+            {
+              label: 'Appraised (Projected)',
+              data: projAppr,
+              borderColor: 'rgba(0,51,102,0.55)',
+              backgroundColor: 'transparent',
+              borderWidth: 2,
+              borderDash: [6, 4],
+              pointRadius: 3,
+              pointHoverRadius: 5,
+              tension: 0.3,
+              fill: false,
+            } as any,
+            {
+              label: 'Land (Projected)',
+              data: projLand,
+              borderColor: 'rgba(46,125,50,0.5)',
+              backgroundColor: 'transparent',
+              borderWidth: 1.5,
+              borderDash: [5, 4],
+              pointRadius: 2,
+              pointHoverRadius: 4,
+              tension: 0.3,
+              fill: false,
+            } as any,
+            {
+              label: 'Improvement (Projected)',
+              data: projImpr,
+              borderColor: 'rgba(230,81,0,0.5)',
+              backgroundColor: 'transparent',
+              borderWidth: 1.5,
+              borderDash: [5, 4],
+              pointRadius: 2,
+              pointHoverRadius: 4,
+              tension: 0.3,
+              fill: false,
+            } as any,
+          ] : []),
         ],
       },
       options: {
