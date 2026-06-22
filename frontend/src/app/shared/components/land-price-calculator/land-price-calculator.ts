@@ -8,6 +8,7 @@ const SQFT_PER_CENT = 435.6;
 
 type AreaUnit = 'acres' | 'sqft' | 'sqyards' | 'cents';
 type PriceUnit = 'per_acre' | 'per_sqft' | 'per_sqyard' | 'per_cent';
+type Currency = 'USD' | 'INR';
 
 interface PriceResult {
   totalPrice: number;
@@ -27,15 +28,19 @@ interface PriceResult {
   styleUrl: './land-price-calculator.scss'
 })
 export class LandPriceCalculatorComponent implements OnInit {
-  areaValue: number | null = null;
+  currency: Currency = 'USD';
+
+  areaValue: number | null = 1;
   areaUnit: AreaUnit = 'acres';
 
-  priceValue: number | null = null;
+  priceValue: number | null = 10;
   priceUnit: PriceUnit = 'per_sqft';
 
   result: PriceResult | null = null;
 
-  ngOnInit(): void {}
+  get currencySymbol(): string { return this.currency === 'INR' ? '₹' : '$'; }
+
+  ngOnInit(): void { this.calculate(); }
 
   calculate(): void {
     if (!this.areaValue || !this.priceValue || this.areaValue <= 0 || this.priceValue < 0) {
@@ -83,9 +88,8 @@ export class LandPriceCalculatorComponent implements OnInit {
   }
 
   fmt(val: number): string {
-    if (val >= 1_000_000) return '$' + (val / 1_000_000).toFixed(2) + 'M';
-    if (val >= 1_000)     return '$' + Math.round(val).toLocaleString('en-US');
-    return '$' + val.toFixed(2);
+    const locale = this.currency === 'INR' ? 'en-IN' : 'en-US';
+    return this.currencySymbol + val.toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   fmtArea(sqft: number): string {

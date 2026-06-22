@@ -1,4 +1,9 @@
 <div class="lpc-card">
+  <div class="currency-toggle">
+    <button [class.active]="currency === 'USD'" (click)="currency = 'USD'; calculate()">$ USD</button>
+    <button [class.active]="currency === 'INR'" (click)="currency = 'INR'; calculate()">₹ INR</button>
+  </div>
+
   <div class="lpc-inputs">
 
     <div class="input-row">
@@ -24,7 +29,7 @@
       <label>Price</label>
       <div class="input-with-unit">
         <div class="price-prefix">
-          <span class="prefix-symbol">$</span>
+          <span class="prefix-symbol">{{ currencySymbol }}</span>
           <input
             type="number"
             [(ngModel)]="priceValue"

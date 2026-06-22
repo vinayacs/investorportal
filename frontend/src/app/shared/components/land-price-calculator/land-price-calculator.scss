@@ -6,6 +6,27 @@
   max-width: 560px;
 }
 
+.currency-toggle {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 18px;
+
+  button {
+    flex: 1;
+    padding: 7px 0;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: white;
+    font-size: 0.88rem;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.15s;
+
+    &:hover { border-color: #106EBE; color: #106EBE; }
+    &.active { background: #106EBE; border-color: #106EBE; color: white; font-weight: 600; }
+  }
+}
+
 .lpc-inputs {
   display: flex;
   flex-direction: column;
